@@ -2,7 +2,7 @@ import type { Response } from 'express';
 import { randomUUID } from 'crypto';
 import type { AuthenticatedRequest } from '../middlewares/index.js';
 import { RunMarketAnalysisPipeline } from '../../../application/use-cases/index.js';
-import { createMarketDataProvider, isFakeProvider } from '../../../infrastructure/market-data/index.js';
+import { YahooFinanceMarketDataProvider } from '../../../infrastructure/market-data/index.js';
 import { isValidSymbol, SUPPORTED_ASSETS } from '../../../config/assets.js';
 import {
   SupabaseMarketDataRepository,
@@ -77,12 +77,8 @@ export class RunMarketAnalysisPipelineController {
 
       const resolution = (req.body?.resolution ?? req.query['resolution'] ?? DEFAULT_RESOLUTION) as string;
 
-      const marketDataProvider = createMarketDataProvider();
-
-      // Production guardrail: prevent fake provider in production
-      if (process.env['NODE_ENV'] === 'production' && isFakeProvider(marketDataProvider)) {
-        throw new Error('FakeMarketDataProvider cannot be used in production');
-      }
+      // Pipeline always uses real market data provider
+      const marketDataProvider = new YahooFinanceMarketDataProvider();
 
       const supabaseClient = createSupabaseClient();
 

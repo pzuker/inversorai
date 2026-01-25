@@ -97,6 +97,11 @@ export class YahooFinanceMarketDataProvider implements MarketDataProviderPort {
         continue;
       }
 
+      // Validate OHLC coherence (required by database constraint)
+      if (high < low || high < open || high < close || low > open || low > close) {
+        continue;
+      }
+
       points.push({
         assetSymbol,
         timestamp: new Date(ts * 1000),

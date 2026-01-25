@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AlertTriangle } from 'lucide-react';
 import type { MarketDataPoint } from '@/lib/apiClient';
 
 interface PriceChartProps {
@@ -26,6 +27,52 @@ interface ChartDataPoint {
   fullDate: string;
 }
 
+interface ScaleInfo {
+  minPrice: number;
+  maxPrice: number;
+  isLowVolatility: boolean;
+  volatilityPercent: number;
+}
+
+const LOW_VOLATILITY_THRESHOLD = 0.001; // 0.1%
+const MIN_PADDING_EPSILON = 0.0001; // Minimum padding to avoid zero range
+
+function calculateScale(closes: number[]): ScaleInfo {
+  if (closes.length === 0) {
+    return { minPrice: 0, maxPrice: 100, isLowVolatility: false, volatilityPercent: 0 };
+  }
+
+  const minClose = Math.min(...closes);
+  const maxClose = Math.max(...closes);
+  const range = maxClose - minClose;
+
+  // Calculate volatility as percentage of minClose
+  const volatilityPercent = minClose > 0 ? range / minClose : 0;
+  const isLowVolatility = volatilityPercent < LOW_VOLATILITY_THRESHOLD;
+
+  // Calculate padding: 10% of range, with minimum epsilon
+  const padding = Math.max(range * 0.1, minClose * MIN_PADDING_EPSILON, MIN_PADDING_EPSILON);
+
+  return {
+    minPrice: minClose - padding,
+    maxPrice: maxClose + padding,
+    isLowVolatility,
+    volatilityPercent: volatilityPercent * 100,
+  };
+}
+
+function formatPrice(value: number): string {
+  // Determine decimal places based on value magnitude
+  if (value >= 1000) {
+    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  } else if (value >= 1) {
+    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  } else {
+    // For values < 1 (like some FX pairs), show more decimals
+    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
+  }
+}
+
 export function PriceChart({ data, loading, error }: PriceChartProps) {
   const chartData = useMemo<ChartDataPoint[]>(() => {
     return data.map((point) => {
@@ -38,16 +85,9 @@ export function PriceChart({ data, loading, error }: PriceChartProps) {
     });
   }, [data]);
 
-  const { minPrice, maxPrice } = useMemo(() => {
-    if (chartData.length === 0) return { minPrice: 0, maxPrice: 100 };
+  const scaleInfo = useMemo<ScaleInfo>(() => {
     const closes = chartData.map((d) => d.close);
-    const min = Math.min(...closes);
-    const max = Math.max(...closes);
-    const padding = (max - min) * 0.1;
-    return {
-      minPrice: Math.floor(min - padding),
-      maxPrice: Math.ceil(max + padding),
-    };
+    return calculateScale(closes);
   }, [chartData]);
 
   if (loading) {
@@ -95,7 +135,7 @@ export function PriceChart({ data, loading, error }: PriceChartProps) {
 
   const latestPrice = chartData[chartData.length - 1]?.close ?? 0;
   const firstPrice = chartData[0]?.close ?? 0;
-  const priceChange = ((latestPrice - firstPrice) / firstPrice) * 100;
+  const priceChange = firstPrice > 0 ? ((latestPrice - firstPrice) / firstPrice) * 100 : 0;
   const isPositive = priceChange >= 0;
 
   return (
@@ -110,7 +150,7 @@ export function PriceChart({ data, loading, error }: PriceChartProps) {
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold">
-              ${latestPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {formatPrice(latestPrice)}
             </p>
             <p className={`text-sm ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
               {isPositive ? '+' : ''}{priceChange.toFixed(2)}%
@@ -119,7 +159,15 @@ export function PriceChart({ data, loading, error }: PriceChartProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px] w-full">
+        {scaleInfo.isLowVolatility && (
+          <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-muted/50 text-muted-foreground text-sm">
+            <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+            <span>
+              Low volatility period — price variation {"<"} 0.1% ({scaleInfo.volatilityPercent.toFixed(3)}%)
+            </span>
+          </div>
+        )}
+        <div className={`h-[300px] w-full ${scaleInfo.isLowVolatility ? 'opacity-75' : ''}`}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={chartData}
@@ -134,13 +182,13 @@ export function PriceChart({ data, loading, error }: PriceChartProps) {
                 className="text-muted-foreground"
               />
               <YAxis
-                domain={[minPrice, maxPrice]}
+                domain={[scaleInfo.minPrice, scaleInfo.maxPrice]}
                 tick={{ fontSize: 12 }}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) => `$${value.toLocaleString()}`}
+                tickFormatter={formatPrice}
                 className="text-muted-foreground"
-                width={80}
+                width={90}
               />
               <Tooltip
                 contentStyle={{
@@ -151,10 +199,7 @@ export function PriceChart({ data, loading, error }: PriceChartProps) {
                 labelStyle={{ color: 'hsl(var(--foreground))' }}
                 formatter={(value) => {
                   const num = value as number;
-                  return [
-                    `$${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-                    'Close',
-                  ];
+                  return [formatPrice(num), 'Close'];
                 }}
                 labelFormatter={(_, payload) => {
                   if (payload && payload[0]) {
