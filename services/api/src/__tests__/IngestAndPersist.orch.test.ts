@@ -7,7 +7,7 @@ const hasSupabaseEnv = (): boolean => {
 const describeIfSupabase = hasSupabaseEnv() ? describe : describe.skip;
 
 describeIfSupabase('IngestAndPersist Orchestration (integration)', () => {
-  const TEST_SYMBOL = 'BTC-USD';
+  const TEST_SYMBOL = 'TEST-ORCH-BTC';
 
   let supabaseClient: import('@supabase/supabase-js').SupabaseClient;
   let runIngestAndPersist: typeof import('../runners/ingestAndPersist.js').runIngestAndPersist;
