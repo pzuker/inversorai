@@ -32,6 +32,7 @@ El objetivo es demostrar comprensión aplicada de:
 - El sistema produce dos salidas complementarias:
   - análisis y explicación de oportunidades,
   - recomendación de acción (BUY/HOLD/SELL) con nivel de confianza.
+- La generación de insights es **responsabilidad del sistema**, no una acción interactiva del usuario final.
 
 ---
 
@@ -124,6 +125,7 @@ Atributos conceptuales:
 
 Notas:
 - Esta entidad es apta para automatización futura, pero el MVP no ejecuta operaciones.
+- La recomendación se genera como **resultado del análisis del sistema por activo**, no por solicitud directa del usuario.
 
 ---
 
@@ -146,7 +148,9 @@ Atributos conceptuales:
 - created_at
 
 Notas:
-- InvestmentInsight y Recommendation se generan en el mismo flujo, pero se persisten separadas para auditoría y análisis.
+- InvestmentInsight y Recommendation se generan en el mismo flujo analítico.
+- Se persisten separadas para auditoría, reutilización y análisis histórico.
+- Los usuarios finales **consultan insights persistidos**, no disparan su generación.
 
 ---
 
@@ -218,7 +222,7 @@ Resultado:
 
 ### UC-03 AnalyzeMarketTrends
 
-Actor: Sistema / Usuario  
+Actor: Sistema  
 Responsabilidad: consolidar un MarketAnalysis determinístico usando indicadores y reglas.
 
 Resultado:
@@ -229,7 +233,7 @@ Resultado:
 
 ### UC-04 GenerateInvestmentInsight
 
-Actor: Sistema / Usuario  
+Actor: Sistema  
 Responsabilidad: invocar IA con un input estructurado basado en MarketAnalysis para producir:
 
 - InvestmentInsight (explicación),
@@ -245,11 +249,15 @@ Resultado:
 - Recommendation persistida.
 - Auditoría completa.
 
+Notas:
+- Este caso de uso se ejecuta por **pipeline automático, scheduler o acción ADMIN**.
+- No se expone como acción directa del usuario final.
+
 ---
 
 ### UC-05 RankOpportunities
 
-Actor: Sistema / Usuario  
+Actor: Sistema  
 Responsabilidad: rankear activos (STOCK/CRYPTO/FX) usando OpportunityScore.
 
 Resultado:
@@ -293,18 +301,17 @@ Responsabilidad: consultar auditoría y trazabilidad del sistema.
 - IngestMarketData (scheduler o ADMIN).
 - ComputeIndicators.
 - AnalyzeMarketTrends.
+- GenerateInvestmentInsight.
 
-Este flujo produce datos determinísticos y reproducibles.
+Este flujo produce análisis e insights reproducibles por activo.
 
 ---
 
-### 5.2 Flujo de IA (insight + recomendación)
+### 5.2 Flujo de consumo de insights
 
-- Se toma el MarketAnalysis más reciente.
-- Se construye un input estructurado (snapshot determinístico).
-- Se invoca IA.
-- Se valida output.
-- Se persisten InvestmentInsight y Recommendation con trazabilidad completa.
+- El sistema persiste InvestmentInsight y Recommendation por activo.
+- Los usuarios consultan los últimos resultados disponibles.
+- No se dispara IA desde la UI.
 
 ---
 
@@ -331,6 +338,7 @@ La IA y Supabase pertenecen a infraestructura.
 
 - Se distingue análisis determinístico (MarketAnalysis) de explicación IA (InvestmentInsight).
 - La recomendación BUY/HOLD/SELL es una salida estructurada y auditable.
+- La generación de insights es responsabilidad del sistema, no del usuario.
 - El MVP no ejecuta operaciones reales.
 - Este documento es vinculante para la evolución del sistema.
 

@@ -45,7 +45,8 @@ Ambas se persisten con trazabilidad:
 - output_schema_version,
 - timestamps.
 
-La IA no opera sobre series crudas completas si no es necesario. Se le entrega un snapshot estructurado basado en MarketAnalysis.
+La IA no opera sobre series crudas completas si no es necesario.  
+Se le entrega un snapshot estructurado basado en MarketAnalysis.
 
 ---
 
@@ -63,6 +64,7 @@ La IA no opera sobre series crudas completas si no es necesario. Se le entrega u
   - cambiar proveedor de IA sin tocar dominio,
   - mejorar prompts con versionado,
   - introducir backtesting sin reescribir el core.
+- La generación de insights se centraliza en el sistema, evitando llamadas ad-hoc por usuario.
 
 ### Negativas
 
@@ -95,6 +97,7 @@ Rechazada por:
 - MarketAnalysis se implementa como caso de uso propio y se persiste.
 - GenerateInvestmentInsight usa un puerto IAProviderPort.
 - Recommendation e InvestmentInsight se persisten por separado.
+- La generación de insights no se expone como acción directa del usuario final.
 - El output de IA debe validarse contra un esquema estable (versionado).
 
 ---
