@@ -9,7 +9,8 @@
       "Bash(npm test:*)",
       "Bash(ls:*)",
       "Bash(npx dotenv:*)",
-      "Bash(npx vitest:*)"
+      "Bash(npx vitest:*)",
+      "Bash(git rm:*)"
     ]
   }
 }
