@@ -2,9 +2,11 @@ import { config } from 'dotenv';
 import { resolve } from 'path';
 import { createApp } from './app.js';
 
+// Try multiple locations for .env
 config({ path: resolve(process.cwd(), '.env') });
+config({ path: resolve(process.cwd(), '../../.env') });
 
-const PORT = process.env['PORT'] ?? 3000;
+const PORT = process.env['PORT'] ?? 3001;
 
 const app = createApp();
 

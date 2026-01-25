@@ -9,6 +9,7 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.0.10",
     "@types/supertest": "^6.0.3",
@@ -19,6 +20,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.91.1",
+    "cors": "^2.8.6",
     "express": "^5.2.1"
   }
 }

@@ -1,10 +1,15 @@
 import express, { type Express } from 'express';
+import cors from 'cors';
 import { authenticate, requireAdmin } from './middlewares/index.js';
 import { AdminIngestController, MarketDataQueryController } from './controllers/index.js';
 
 export function createApp(): Express {
   const app = express();
 
+  app.use(cors({
+    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+    credentials: true,
+  }));
   app.use(express.json());
 
   const adminIngestController = new AdminIngestController();
