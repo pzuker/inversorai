@@ -1,470 +1,203 @@
-\# InversorAI  
+# InversorAI
 
-Plataforma Fullstack de Análisis de Mercados con Inteligencia Artificial
+**InversorAI** es una plataforma full-stack de análisis de mercados financieros que combina **datos de mercado reales** (Crypto, Acciones y FX) con **análisis cuantitativo** e **inteligencia artificial** para generar **insights y recomendaciones de inversión explicables**.
 
+El sistema está diseñado y construido siguiendo principios de **Clean Architecture**, **TDD** y **separación estricta de responsabilidades**, con un enfoque claro en **calidad académica, robustez técnica y experiencia de usuario profesional**.
 
-
-Trabajo Final de Máster – Desarrollo de Sistemas con IA
-
-
+Este proyecto corresponde al **Trabajo Final de Máster (TFM)** del Máster en Desarrollo con Inteligencia Artificial.
 
 ---
 
+## 🎯 Objetivos del Proyecto
 
-
-\## 1. Introducción
-
-
-
-InversorAI es una plataforma fullstack diseñada para el análisis de mercados financieros mediante ingeniería de software moderna e inteligencia artificial controlada.
-
-
-
-El sistema permite analizar activos de distintos mercados (acciones, criptomonedas y divisas), calcular indicadores técnicos, optimizar portafolios y generar recomendaciones de inversión \*\*explicables y auditables\*\*, sin ejecutar operaciones reales.
-
-
-
-El proyecto se concibe como un sistema profesional, desplegable en producción, alineado con principios de arquitectura limpia, seguridad (OWASP Top 10) y uso responsable de IA.
-
-
+- Analizar activos financieros reales (CRYPTO, STOCK y FX).
+- Automatizar la ingesta de datos de mercado directamente desde Internet.
+- Calcular indicadores técnicos y métricas cuantitativas.
+- Generar análisis e insights mediante IA explicable.
+- Ofrecer recomendaciones de inversión claras y defendibles.
+- Proveer una interfaz web profesional con UX de nivel producto.
+- Demostrar buenas prácticas de arquitectura, testing y seguridad.
 
 ---
 
+## 📊 Activos Soportados (MVP)
 
+El MVP soporta múltiples mercados reales:
 
-\## 2. Problema que Aborda
+| Tipo   | Símbolo   | Descripción        |
+|--------|-----------|--------------------|
+| Crypto | BTC-USD   | Bitcoin            |
+| Stock  | AAPL      | Apple Inc.         |
+| FX     | EURUSD=X  | Euro / Dólar USD   |
 
-
-
-Los inversores y analistas enfrentan problemas recurrentes:
-
-
-
-\- Acceso fragmentado a datos de mercado.
-
-\- Falta de trazabilidad en sistemas basados en IA.
-
-\- Herramientas poco auditables o no reproducibles.
-
-\- Mezcla incorrecta entre análisis, recomendación y ejecución.
-
-\- Sistemas difíciles de desplegar o mantener.
-
-
-
-InversorAI aborda estos problemas mediante un sistema que automatiza la recolección de datos, aplica indicadores verificables, integra IA de forma controlada y separa claramente análisis, recomendación y ejecución.
-
-
+Todos los precios e históricos provienen de **Yahoo Finance** y son **verificables externamente**.
 
 ---
 
+## 🏗️ Arquitectura
 
+El sistema sigue una **Clean / Hexagonal Architecture**, separando claramente:
 
-\## 3. Alcance del Proyecto
+- **Dominio**: entidades, reglas de negocio y casos de uso.
+- **Aplicación**: orquestación de procesos.
+- **Infraestructura**: proveedores externos (market data, IA, persistencia).
+- **Interfaces**: API REST y frontend web.
 
+### Principios clave
 
-
-Incluye:
-
-
-
-\- Análisis de mercados: acciones (STOCK), criptomonedas (CRYPTO) y divisas (FX).
-
-\- Ingesta automática de datos de mercado.
-
-\- Persistencia de series temporales.
-
-\- Cálculo de indicadores técnicos (RSI, MACD, Sharpe Ratio, volatilidad).
-
-\- Optimización de portafolios (maximización de Sharpe).
-
-\- Recomendaciones de inversión mediante IA.
-
-\- Auditoría completa de decisiones generadas por IA.
-
-\- Dashboard web.
-
-\- API REST segura.
-
-\- Autenticación y autorización con roles ADMIN y USER.
-
-
-
-Excluye deliberadamente:
-
-
-
-\- Ejecución automática de trading real.
-
-\- Integración con brokers.
-
-\- Garantías de predicción financiera.
-
-\- Entrenamiento de modelos en tiempo real.
-
-\- Aplicaciones móviles nativas.
-
-
+- Los providers se utilizan exclusivamente para **ingesta y escritura**.
+- Todas las lecturas se realizan desde una **fuente de verdad persistida**.
+- Los fake providers existen **solo para testing**.
+- El código está preparado para evolucionar sin acoplamientos.
 
 ---
 
+## 🧠 Inteligencia Artificial
 
+El sistema utiliza IA para:
 
-\## 4. Arquitectura General
+- Analizar tendencias de mercado.
+- Explicar oportunidades de inversión.
+- Generar recomendaciones estructuradas (BUY / HOLD / SELL).
 
+### Características
 
-
-El sistema sigue una arquitectura Clean / Hexagonal organizada en:
-
-
-
-\- Dominio: entidades y reglas de negocio.
-
-\- Aplicación: casos de uso explícitos.
-
-\- Infraestructura: base de datos, colas y proveedores externos.
-
-\- Interfaces: API REST y aplicación web.
-
-
-
-Se utiliza un monorepo TypeScript con separación clara entre frontend, backend y workers asíncronos.  
-
-Las decisiones arquitectónicas están documentadas mediante ADRs en el directorio /docs/03\_ADR.
-
-
+- Output validado por esquema.
+- Versionado de prompts.
+- Insights explicables (no caja negra).
+- IA integrada como parte del sistema, no como feature aislado.
 
 ---
 
+## 🔐 Seguridad y Roles
 
+### Autenticación
 
-\## 5. Uso de Inteligencia Artificial
+- Supabase Auth (email + password).
+- Registro abierto para usuarios finales.
 
+### Roles
 
+- **USER**
+  - Acceso de solo lectura.
+  - Visualiza datos reales, gráficos, insights y recomendaciones.
+- **ADMIN**
+  - Ejecuta el pipeline de análisis.
+  - Controla la actualización de datos e insights.
 
-La inteligencia artificial se utiliza exclusivamente para generar recomendaciones, nunca para ejecutar acciones reales.
+### Seguridad adicional
 
-
-
-Principios aplicados:
-
-
-
-\- Prompts versionados.
-
-\- Inputs estructurados y determinísticos.
-
-\- Outputs validados contra esquemas.
-
-\- Auditoría completa (input, output, modelo y versión).
-
-\- Mitigación explícita de alucinaciones.
-
-
-
-La IA se trata como un componente controlado de ingeniería, no como una caja negra.
-
-
+- Rate limiting en endpoints sensibles (por asset).
+- Protección contra abuso del pipeline.
+- Separación estricta de permisos.
 
 ---
 
+## 🧪 Testing y Calidad
 
-
-\## 6. Instalación y Ejecución del Proyecto
-
-
-
-Esta sección describe cómo instalar y ejecutar el proyecto, cumpliendo los requisitos del Trabajo Final de Máster.
-
-
-
-\### 6.1 Requisitos Previos
-
-
-
-\- Git
-
-\- Node.js (versión LTS recomendada)
-
-\- Gestor de paquetes npm o pnpm
-
-\- Cuenta gratuita en Supabase (base de datos y autenticación)
-
-\- Cuenta en proveedor de IA (opcional para modo demo limitado)
-
-
-
-No se requiere software propietario.
-
-
+- Desarrollo guiado por tests (TDD).
+- Tests unitarios y de integración (opt-in).
+- Fake providers utilizados únicamente en tests.
+- TypeScript estricto en todo el código.
 
 ---
 
+## 📦 Stack Tecnológico
 
+### Backend
 
-\### 6.2 Clonado del Repositorio
+- Node.js + TypeScript
+- Clean Architecture
+- Supabase (PostgreSQL + Auth)
+- Yahoo Finance (market data)
+- OpenAI (IA)
 
+### Frontend
 
+- Next.js (App Router)
+- TailwindCSS + shadcn/ui
+- Recharts (visualización)
+- Light / Dark mode
+- UX orientada a producto real
 
-Clonar el repositorio desde su URL oficial y acceder al directorio raíz del proyecto.
+### Infraestructura
 
-
-
----
-
-
-
-\### 6.3 Instalación de Dependencias
-
-
-
-Desde la raíz del monorepo, instalar todas las dependencias del proyecto utilizando el gestor de paquetes configurado.
-
-
-
----
-
-
-
-\### 6.4 Configuración de Variables de Entorno
-
-
-
-El proyecto incluye un archivo de ejemplo de variables de entorno (.env.example).  
-
-Debe copiarse como .env y configurarse con los valores correspondientes a cada entorno.
-
-
-
-Las variables incluyen, entre otras:
-
-
-
-\- Conexión a base de datos.
-
-\- Credenciales de Supabase Auth.
-
-\- Clave del proveedor de IA.
-
-\- Configuración del entorno de ejecución.
-
-
+- Monorepo
+- Separación backend / frontend
+- Preparado para despliegue en producción
 
 ---
 
+## 🚀 Ejecución en Local
 
+### Requisitos
 
-\### 6.5 Ejecución Local (Modo Desarrollo)
+- Node.js 18+
+- Cuenta en Supabase
+- Variables de entorno configuradas
 
+### Backend
 
+cd services/api
+npm install
+npm run dev
 
-El sistema se ejecuta en procesos independientes:
+### Frontend
 
+cd apps/web
+npm install
+npm run dev
 
+Acceder a:
 
-\- Aplicación web (frontend).
-
-\- API backend.
-
-\- Workers asíncronos.
-
-
-
-Cada componente puede iniciarse de forma separada mediante los scripts definidos en el proyecto.
-
-
-
----
-
-
-
-\### 6.6 Ejecución sin Credenciales Reales (Modo Demo)
-
-
-
-Para fines académicos, el sistema puede ejecutarse en modo demo utilizando:
-
-
-
-\- Proveedores de datos simulados.
-
-\- Respuestas de IA stub.
-
-\- Autenticación de prueba.
-
-
-
-Este modo permite evaluar la arquitectura y los flujos del sistema sin depender de servicios externos reales.
-
-
+http://localhost:3000
 
 ---
 
+## ⚙️ Variables de Entorno (ejemplo)
 
+SUPABASE_URL=...
+SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
 
-\### 6.7 Despliegue a Producción (Resumen)
+OPENAI_API_KEY=...
 
-
-
-El proyecto está preparado para despliegue real mediante:
-
-
-
-\- Frontend en plataforma serverless.
-
-\- Backend y workers en servicios gestionados.
-
-\- Base de datos y autenticación gestionadas.
-
-
-
-El detalle completo del despliegue se documenta en /docs/08\_CICD\_Y\_DEPLOY.md.
-
-
+MARKET_DATA_PROVIDER=REAL
+NODE_ENV=development
 
 ---
 
+## 🧭 Flujo de Demo Recomendado (Defensa)
 
-
-\## 7. Seguridad
-
-
-
-La seguridad es un eje central del diseño:
-
-
-
-\- Autenticación mediante OIDC/OAuth2.
-
-\- Roles ADMIN y USER.
-
-\- Autorización basada en RBAC.
-
-\- Aislamiento de datos por usuario.
-
-\- Auditoría de eventos críticos.
-
-\- Alineación explícita con OWASP Top 10.
-
-
-
-El sistema no gestiona contraseñas localmente.
-
-
+1. Registro de usuario (USER).
+2. Login y acceso al dashboard.
+3. Visualización de datos reales (verificables en Google).
+4. Cambio de activos (Crypto / Stock / FX).
+5. Visualización de indicadores y gráficos con escala adaptativa.
+6. Ejecución del pipeline como ADMIN.
+7. Generación de insight IA y recomendación.
+8. Comparación con mercado real.
 
 ---
 
+## 📈 Fuente de Datos y Disclaimer
 
-
-\## 8. Organización del Repositorio
-
-
-
-Estructura simplificada del repositorio:
-
-
-
-\- /docs: documentación del sistema y ADRs.
-
-\- /apps: frontend web.
-
-\- /services: API y workers.
-
-\- /packages: código compartido.
-
-
-
-La documentación es parte integral del proyecto.
-
-
+- Fuente de datos de mercado: **Yahoo Finance**.
+- Los análisis e insights generados **no constituyen asesoramiento financiero**.
+- El sistema tiene fines educativos y demostrativos.
 
 ---
 
+## 📌 Estado del Proyecto
 
-
-\## 9. Documentación Técnica
-
-
-
-El proyecto incluye documentación detallada sobre:
-
-
-
-\- Requisitos del sistema.
-
-\- Decisiones arquitectónicas.
-
-\- Dominio y casos de uso.
-
-\- Pipeline de datos.
-
-\- Uso de IA y guardrails.
-
-\- Seguridad.
-
-\- Testing.
-
-\- CI/CD.
-
-
-
-Toda la documentación se encuentra en el directorio /docs.
-
-
+- MVP completo y funcional.
+- Desplegado en producción.
+- Preparado para evaluación académica.
+- Base sólida para evolución futura.
 
 ---
 
+## 👨‍🎓 Autor
 
-
-\## 10. Limitaciones y Trabajo Futuro
-
-
-
-Limitaciones actuales:
-
-
-
-\- Uso de proveedores de datos gratuitos en el MVP.
-
-\- Sin ejecución de órdenes reales.
-
-\- Optimización de portafolio básica.
-
-
-
-Posibles extensiones futuras:
-
-
-
-\- Integración con brokers.
-
-\- Backtesting avanzado.
-
-\- Modelos predictivos propios.
-
-\- Multi-tenant completo.
-
-\- Aplicaciones móviles.
-
-
-
----
-
-
-
-\## 11. Conclusiones
-
-
-
-InversorAI demuestra la aplicación práctica de arquitectura limpia, procesamiento de datos financieros, uso responsable de inteligencia artificial, seguridad moderna y despliegue realista.
-
-
-
-El proyecto prioriza claridad conceptual, trazabilidad y calidad técnica, cumpliendo los objetivos académicos y profesionales del Trabajo Final de Máster.
-
-
-
----
-
-
-
+Trabajo realizado como **Trabajo Final de Máster (TFM)**  
+Máster en Desarrollo con Inteligencia Artificial.
