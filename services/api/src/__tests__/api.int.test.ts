@@ -9,6 +9,7 @@ const describeIfSupabase = hasSupabaseEnv() ? describe : describe.skip;
 
 describeIfSupabase('API Integration Tests', () => {
   const TEST_SYMBOL = 'BTC-USD';
+  const SUPPORTED_SYMBOLS = ['BTC-USD', 'AAPL', 'EURUSD=X'];
 
   let app: import('express').Express;
   let supabaseClient: import('@supabase/supabase-js').SupabaseClient;
@@ -28,6 +29,30 @@ describeIfSupabase('API Integration Tests', () => {
       .eq('asset_symbol', TEST_SYMBOL);
   });
 
+  describe('GET /api/v1/assets', () => {
+    const endpoint = '/api/v1/assets';
+
+    it('returns 200 with list of supported assets', async () => {
+      const response = await request(app).get(endpoint);
+
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body.data)).toBe(true);
+      expect(response.body.data.length).toBe(3);
+
+      const symbols = response.body.data.map((a: { symbol: string }) => a.symbol);
+      for (const expected of SUPPORTED_SYMBOLS) {
+        expect(symbols).toContain(expected);
+      }
+
+      for (const asset of response.body.data) {
+        expect(asset).toHaveProperty('symbol');
+        expect(asset).toHaveProperty('displayName');
+        expect(asset).toHaveProperty('type');
+        expect(asset).toHaveProperty('currency');
+      }
+    });
+  });
+
   describe('POST /api/v1/admin/pipeline/run', () => {
     const endpoint = '/api/v1/admin/pipeline/run';
 
@@ -42,6 +67,17 @@ describeIfSupabase('API Integration Tests', () => {
         .query({ symbol: TEST_SYMBOL })
         .set('x-user-role', 'USER');
       expect(response.status).toBe(403);
+    });
+
+    it('returns 400 with invalid symbol', async () => {
+      const response = await request(app)
+        .post(endpoint)
+        .query({ symbol: 'INVALID-SYMBOL' })
+        .set('x-user-role', 'ADMIN');
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('Invalid symbol');
+      expect(response.body.error).toContain('Allowed symbols');
     });
 
     it('returns 200 with ADMIN role and includes pipeline summary', async () => {

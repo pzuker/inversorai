@@ -4,6 +4,7 @@ import type { AuthenticatedRequest } from './authenticate.js';
 interface RateLimitEntry {
   count: number;
   resetAt: number;
+  symbol: string;
 }
 
 const rateLimitStore = new Map<string, RateLimitEntry>();
@@ -11,10 +12,11 @@ const rateLimitStore = new Map<string, RateLimitEntry>();
 interface RateLimiterOptions {
   windowMs: number;
   maxRequests: number;
+  resourceName: string;
 }
 
 export function createRateLimiter(options: RateLimiterOptions) {
-  const { windowMs, maxRequests } = options;
+  const { windowMs, maxRequests, resourceName } = options;
 
   return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
     // Skip rate limiting in test environment
@@ -23,9 +25,12 @@ export function createRateLimiter(options: RateLimiterOptions) {
       return;
     }
 
-    // Use IP address as rate limit key (user ID not available in current auth)
-    const clientKey = req.ip ?? req.headers['x-forwarded-for'] ?? 'anonymous';
-    const key = `${req.path}:${clientKey}`;
+    // Extract user identifier (use IP as fallback since user.id is not available)
+    const userId = req.ip ?? req.headers['x-forwarded-for'] ?? 'anonymous';
+    const assetSymbol = (req.body?.symbol ?? req.query['symbol'] ?? 'unknown') as string;
+
+    // Key format: resource:userId:assetSymbol
+    const key = `${resourceName}:${userId}:${assetSymbol}`;
     const now = Date.now();
 
     const entry = rateLimitStore.get(key);
@@ -36,7 +41,8 @@ export function createRateLimiter(options: RateLimiterOptions) {
 
         res.status(429).json({
           error: 'Too Many Requests',
-          message: `Rate limit exceeded. Try again in ${retryAfterSeconds} seconds.`,
+          message: `Rate limit exceeded for asset ${assetSymbol}. Try again in ${retryAfterSeconds} seconds.`,
+          asset: assetSymbol,
           retryAfter: retryAfterSeconds,
         });
         return;
@@ -47,6 +53,7 @@ export function createRateLimiter(options: RateLimiterOptions) {
       rateLimitStore.set(key, {
         count: 1,
         resetAt: now + windowMs,
+        symbol: assetSymbol,
       });
     }
 

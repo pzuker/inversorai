@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState, useCallback, useMemo } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { RefreshCw } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Header } from '@/components/header';
@@ -17,15 +17,23 @@ import {
 } from '@/components/dashboard';
 import { useMarketData, useLatestRecommendation, useLatestInsight } from '@/hooks';
 import { runPipeline, type PipelineResult } from '@/lib/apiClient';
-import { DEFAULT_ASSET, getAssetTypeLabel, type Asset } from '@/lib/assets';
+import { DEFAULT_ASSET, getAssetBySymbol, getAssetTypeLabel, type Asset } from '@/lib/assets';
 
 const ADMIN_EMAIL = 'admin@inversorai.com';
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { user, session, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const [currentAsset, setCurrentAsset] = useState<Asset>(DEFAULT_ASSET);
+  const currentAsset = useMemo<Asset>(() => {
+    const symbolParam = searchParams.get('symbol');
+    if (symbolParam) {
+      const asset = getAssetBySymbol(symbolParam);
+      if (asset) return asset;
+    }
+    return DEFAULT_ASSET;
+  }, [searchParams]);
 
   const isAdmin = user?.email === ADMIN_EMAIL;
 
@@ -65,10 +73,10 @@ export default function DashboardPage() {
   }, [refetchMarket, refetchRecommendation, refetchInsight]);
 
   const handleAssetChange = useCallback((asset: Asset) => {
-    setCurrentAsset(asset);
+    router.replace(`/dashboard?symbol=${encodeURIComponent(asset.symbol)}`);
     setPipelineResult(null);
     setPipelineError(null);
-  }, []);
+  }, [router]);
 
   const handleRunPipeline = async () => {
     if (!session?.access_token) return;
@@ -215,5 +223,21 @@ export default function DashboardPage() {
         </section>
       </main>
     </div>
+  );
+}
+
+function DashboardLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-pulse text-muted-foreground">Loading...</div>
+    </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardLoading />}>
+      <DashboardContent />
+    </Suspense>
   );
 }

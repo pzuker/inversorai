@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto';
 import type { AuthenticatedRequest } from '../middlewares/index.js';
 import { RunMarketAnalysisPipeline } from '../../../application/use-cases/index.js';
 import { createMarketDataProvider, isFakeProvider } from '../../../infrastructure/market-data/index.js';
+import { isValidSymbol, SUPPORTED_ASSETS } from '../../../config/assets.js';
 import {
   SupabaseMarketDataRepository,
   SupabaseInvestmentInsightRepository,
@@ -54,6 +55,23 @@ export class RunMarketAnalysisPipelineController {
           error: 'Missing required parameter: symbol',
         });
         res.status(400).json({ error: 'Missing required parameter: symbol' });
+        return;
+      }
+
+      if (!isValidSymbol(symbol)) {
+        const allowedSymbols = SUPPORTED_ASSETS.map((a) => a.symbol).join(', ');
+        logAudit({
+          requestId,
+          userRole,
+          clientIp,
+          assetSymbol: symbol,
+          timestamp: new Date().toISOString(),
+          result: 'error',
+          error: `Invalid symbol. Allowed: ${allowedSymbols}`,
+        });
+        res.status(400).json({
+          error: `Invalid symbol: ${symbol}. Allowed symbols: ${allowedSymbols}`,
+        });
         return;
       }
 
