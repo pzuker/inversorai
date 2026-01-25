@@ -1,38 +1,37 @@
 # 04 — Dominio y Arquitectura de Casos de Uso
 
 **Proyecto:** InversorAI  
-**Fecha:** 2025-01-24  
+**Fecha:** 2025-01-25  
 **Contexto:** Trabajo Final de Máster – Desarrollo de Sistemas con IA  
 
 ---
 
 ## 1. Propósito del Documento
 
-Este documento define de manera explícita:
+Este documento define:
 
-- El modelo de dominio del sistema InversorAI.
+- El modelo de dominio del sistema InversorAI (MVP académico-profesional).
 - Los casos de uso que gobiernan su comportamiento.
-- Los flujos principales de ejecución del sistema.
+- Los flujos principales de ejecución.
 - La separación de responsabilidades entre capas según Clean Architecture.
 
-El objetivo es demostrar comprensión real de:
+El objetivo es demostrar comprensión aplicada de:
 - diseño orientado a dominio,
 - arquitectura basada en casos de uso,
-- separación estricta de responsabilidades.
-
-Este documento no contiene código ni configuración de infraestructura.
+- integración responsable de IA (explicable, validable, auditable).
 
 ---
 
 ## 2. Principios de Diseño
 
-El sistema se diseña siguiendo estos principios:
-
-- El dominio es independiente de frameworks, bases de datos y APIs externas.
+- El dominio es independiente de frameworks, DB y APIs externas.
 - Toda funcionalidad relevante se expresa como un caso de uso explícito.
-- Las dependencias siempre apuntan hacia el dominio.
-- No existen efectos colaterales implícitos.
-- La IA se integra como servicio controlado, no como lógica central del dominio.
+- Dependencias siempre hacia el dominio (Inversión de Dependencias).
+- Procesos largos se ejecutan de manera asíncrona cuando aplica.
+- La IA es un componente controlado: input estructurado, output validado, auditoría completa.
+- El sistema produce dos salidas complementarias:
+  - análisis y explicación de oportunidades,
+  - recomendación de acción (BUY/HOLD/SELL) con nivel de confianza.
 
 ---
 
@@ -54,10 +53,10 @@ Atributos conceptuales:
 
 ### 3.2 MarketDataPoint
 
-Representa un punto de datos de mercado.
+Representa un punto de datos de mercado (OHLCV).
 
 Atributos conceptuales:
-- asset_id
+- asset_symbol
 - timestamp (UTC)
 - open
 - high
@@ -65,53 +64,114 @@ Atributos conceptuales:
 - close
 - volume
 - resolution
-- is_interpolated
 - source
+- is_interpolated
 
 ---
 
 ### 3.3 IndicatorSet
 
-Representa indicadores técnicos calculados.
+Representa indicadores técnicos calculados para un instante y resolución.
 
 Atributos conceptuales:
-- asset_id
+- asset_symbol
 - timestamp
 - resolution
-- rsi
+- sma_20
+- ema_20
+- rsi_14
 - macd
 - macd_signal
-- volatility
-- sharpe_ratio
+- volatility_30d
+- sharpe_30d
 - calculation_version
 
 ---
 
-### 3.4 Recommendation
+### 3.4 MarketAnalysis
 
-Representa una recomendación generada por IA.
+Representa un análisis técnico y cuantitativo consolidado, previo a IA.
 
 Atributos conceptuales:
 - id
-- asset_id
+- asset_symbol
+- as_of_timestamp
+- resolution
+- trend (BULLISH | BEARISH | NEUTRAL)
+- signal_strength (0..100)
+- key_kpis (estructura con KPIs relevantes)
+- rationale (explicación técnica no-IA, breve y determinística)
+- created_at
+
+Notas:
+- MarketAnalysis es determinístico y reproducible.
+- Es el insumo principal para la IA (no se le entrega la serie cruda completa si no hace falta).
+
+---
+
+### 3.5 Recommendation
+
+Representa una recomendación estructurada de acción.
+
+Atributos conceptuales:
+- id
+- asset_symbol
 - action (BUY | HOLD | SELL)
-- confidence_score
+- confidence_score (0..1)
+- horizon (ej: SHORT | MID | LONG)
+- risk_level (LOW | MEDIUM | HIGH)
+- created_at
+
+Notas:
+- Esta entidad es apta para automatización futura, pero el MVP no ejecuta operaciones.
+
+---
+
+### 3.6 InvestmentInsight
+
+Representa la explicación generada por IA, trazable y auditable.
+
+Atributos conceptuales:
+- id
+- asset_symbol
+- summary (texto breve)
+- reasoning (texto estructurado: drivers, riesgos, señales)
+- assumptions (lista)
+- caveats (lista)
 - model_name
 - model_version
 - prompt_version
 - input_snapshot_hash
+- output_schema_version
+- created_at
+
+Notas:
+- InvestmentInsight y Recommendation se generan en el mismo flujo, pero se persisten separadas para auditoría y análisis.
+
+---
+
+### 3.7 OpportunityScore
+
+Representa un score comparable entre activos para ranking.
+
+Atributos conceptuales:
+- id
+- asset_symbol
+- as_of_timestamp
+- score (0..100)
+- components (estructura: tendencia, riesgo, consistencia, confianza_ia, etc.)
 - created_at
 
 ---
 
-### 3.5 Portfolio
+### 3.8 Portfolio (MVP+)
 
-Representa un portafolio de usuario.
+Representa un portafolio del usuario (MVP académico puede ser básico).
 
 Atributos conceptuales:
 - id
 - user_id
-- assets
+- positions
 - weights
 - expected_return
 - expected_volatility
@@ -119,9 +179,9 @@ Atributos conceptuales:
 
 ---
 
-### 3.6 AuditLog
+### 3.9 AuditLog
 
-Evento de auditoría del sistema.
+Evento auditable del sistema.
 
 Atributos conceptuales:
 - id
@@ -136,138 +196,142 @@ Atributos conceptuales:
 
 ### UC-01 IngestMarketData
 
-Actor: Sistema  
-Responsabilidad: obtener datos OHLCV desde proveedores externos y persistirlos.
+Actor: Sistema (ADMIN puede dispararlo manualmente)  
+Responsabilidad: obtener OHLCV desde proveedores externos y persistirlos.
 
-Flujo:
-1. Resolver proveedor según tipo de activo.
-2. Obtener datos históricos por rango temporal.
-3. Normalizar timestamps y formatos.
-4. Persistir datos de mercado.
-5. Registrar evento de auditoría.
+Resultado:
+- MarketDataPoint persistidos.
+- Auditoría de ingesta.
 
 ---
 
 ### UC-02 ComputeIndicators
 
 Actor: Sistema  
-Responsabilidad: calcular indicadores técnicos a partir de datos de mercado.
+Responsabilidad: calcular indicadores técnicos desde MarketDataPoint.
 
-Flujo:
-1. Recuperar datos de mercado.
-2. Calcular indicadores según fórmulas definidas.
-3. Persistir resultados.
-4. Registrar evento de auditoría.
+Resultado:
+- IndicatorSet persistidos.
+- Auditoría de cálculo.
 
 ---
 
-### UC-03 GenerateInvestmentRecommendation
+### UC-03 AnalyzeMarketTrends
 
 Actor: Sistema / Usuario  
-Responsabilidad: generar recomendación de inversión mediante IA.
-
-Flujo:
-1. Construir snapshot determinístico de indicadores.
-2. Calcular hash del input.
-3. Invocar modelo IA vía puerto de aplicación.
-4. Validar y normalizar output.
-5. Persistir recomendación y auditoría.
-
----
-
-### UC-04 AuthenticateUser
-
-Actor: Usuario  
-Responsabilidad: autenticarse mediante Identity Provider.
+Responsabilidad: consolidar un MarketAnalysis determinístico usando indicadores y reglas.
 
 Resultado:
-- Sesión válida emitida por el IdP.
+- MarketAnalysis persistido.
+- KPIs y señal agregada.
 
 ---
 
-### UC-05 ViewDashboard
+### UC-04 GenerateInvestmentInsight
 
-Actor: Usuario  
-Responsabilidad: visualizar datos de mercado, indicadores y recomendaciones permitidas.
+Actor: Sistema / Usuario  
+Responsabilidad: invocar IA con un input estructurado basado en MarketAnalysis para producir:
+
+- InvestmentInsight (explicación),
+- Recommendation (acción BUY/HOLD/SELL con confianza).
+
+Características:
+- prompt_version controlado,
+- input_snapshot_hash,
+- output validado por esquema.
 
 Resultado:
-- Información presentada según permisos del usuario.
+- InvestmentInsight persistido.
+- Recommendation persistida.
+- Auditoría completa.
 
 ---
 
-### UC-06 OptimizePortfolio
+### UC-05 RankOpportunities
+
+Actor: Sistema / Usuario  
+Responsabilidad: rankear activos (STOCK/CRYPTO/FX) usando OpportunityScore.
+
+Resultado:
+- OpportunityScore persistidos por ventana temporal.
+- Ranking consumible por UI.
+
+---
+
+### UC-06 AuthenticateUser
 
 Actor: Usuario  
-Responsabilidad: optimizar un portafolio maximizando el Sharpe Ratio.
-
-Flujo:
-1. Obtener retornos históricos.
-2. Calcular matriz de covarianza.
-3. Ejecutar algoritmo de optimización.
-4. Retornar resultados al usuario.
+Responsabilidad: autenticación delegada (IdP), emisión de sesión.
 
 ---
 
-### UC-07 ManageAssets
+### UC-07 ViewDashboard
+
+Actor: Usuario  
+Responsabilidad: visualizar datos, KPIs, insights, recomendaciones y ranking según permisos.
+
+---
+
+### UC-08 ManageAssets
 
 Actor: ADMIN  
-Responsabilidad: gestionar el catálogo de activos financieros.
-
-Resultado:
-- Activos actualizados.
-- Auditoría registrada.
+Responsabilidad: gestionar catálogo de activos (activar/desactivar, tipo, moneda, exchange).
 
 ---
 
-### UC-08 ViewAuditLogs
+### UC-09 ViewAuditLogs
 
 Actor: ADMIN  
-Responsabilidad: consultar eventos de auditoría del sistema.
+Responsabilidad: consultar auditoría y trazabilidad del sistema.
 
 ---
 
 ## 5. Flujos Principales del Sistema
 
-### 5.1 Flujo Automático de Ingesta y Análisis
+### 5.1 Flujo automático (pipeline técnico)
 
-Este flujo equivale a un **diagrama de secuencia** y se describe textualmente para maximizar portabilidad del documento:
+- IngestMarketData (scheduler o ADMIN).
+- ComputeIndicators.
+- AnalyzeMarketTrends.
 
-- Un scheduler dispara el caso de uso IngestMarketData.
-- Un worker obtiene datos desde el proveedor externo.
-- Los datos se persisten como MarketDataPoint.
-- Se ejecuta el caso de uso ComputeIndicators.
-- Los indicadores calculados se almacenan como IndicatorSet.
+Este flujo produce datos determinísticos y reproducibles.
 
 ---
 
-### 5.2 Flujo de Recomendación por Usuario
+### 5.2 Flujo de IA (insight + recomendación)
 
-Flujo equivalente a un diagrama de secuencia usuario–sistema:
+- Se toma el MarketAnalysis más reciente.
+- Se construye un input estructurado (snapshot determinístico).
+- Se invoca IA.
+- Se valida output.
+- Se persisten InvestmentInsight y Recommendation con trazabilidad completa.
 
-- El usuario solicita una recomendación.
-- La API invoca GenerateInvestmentRecommendation.
-- El caso de uso llama al modelo de IA mediante el puerto.
-- El resultado se valida, normaliza y persiste.
-- La recomendación se devuelve al usuario.
+---
+
+### 5.3 Flujo de ranking (multi-activo)
+
+- Se toman OpportunityScore por activo.
+- Se calcula ranking.
+- UI consume ranking con KPIs resumidos e insight breve.
 
 ---
 
 ## 6. Separación de Capas
 
-- Dominio: entidades y reglas de negocio.
-- Aplicación: casos de uso.
-- Infraestructura: base de datos, colas, proveedores externos.
-- Interfaces: API y Web.
+- Dominio: entidades y reglas.
+- Aplicación: casos de uso y puertos.
+- Infraestructura: DB, colas, proveedores, IA client.
+- Interfaces: HTTP/CLI/UI.
 
-Las dependencias **nunca** apuntan hacia afuera.
+La IA y Supabase pertenecen a infraestructura.
 
 ---
 
 ## 7. Consideraciones Finales
 
-- No existen endpoints sin un caso de uso asociado.
-- La IA no rompe el dominio ni toma decisiones autónomas.
-- El sistema es extensible sin reescribir el núcleo.
-- Este documento es vinculante para la implementación del sistema.
+- Se distingue análisis determinístico (MarketAnalysis) de explicación IA (InvestmentInsight).
+- La recomendación BUY/HOLD/SELL es una salida estructurada y auditable.
+- El MVP no ejecuta operaciones reales.
+- Este documento es vinculante para la evolución del sistema.
 
 ---

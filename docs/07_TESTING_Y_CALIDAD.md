@@ -1,506 +1,149 @@
-\# 07 — Testing y Calidad del Software
+# 07 — Testing y Calidad del Software
 
-
-
-\*\*Proyecto:\*\* InversorAI  
-
-\*\*Fecha:\*\* 2025-01-24  
-
-\*\*Contexto:\*\* Trabajo Final de Máster – Desarrollo de Sistemas con IA  
-
-
+**Proyecto:** InversorAI  
+**Fecha:** 2025-01-25  
+**Contexto:** Trabajo Final de Máster – Desarrollo de Sistemas con IA  
 
 ---
 
+## 1. Propósito del Documento
 
+Este documento define la estrategia de testing y calidad del sistema InversorAI, con especial énfasis en:
 
-\## 1. Propósito del Documento
-
-
-
-Este documento define la \*\*estrategia de testing y aseguramiento de calidad\*\* del sistema InversorAI.
-
-
-
-El objetivo es demostrar:
-
-
-
-\- comprensión de testing en sistemas complejos,
-
-\- validación de reglas de negocio,
-
-\- control de calidad en pipelines de datos,
-
-\- verificación responsable de sistemas que utilizan IA.
-
-
-
-Este documento \*\*no contiene código de tests\*\*, sino la \*\*estrategia y criterios\*\* que gobiernan su diseño.
-
-
+- TDD como metodología de desarrollo,
+- testing por capas (dominio, casos de uso, integración),
+- testing específico para sistemas que integran IA,
+- control de regresiones y trazabilidad.
 
 ---
 
+## 2. Metodología de Desarrollo
 
+Se adopta **TDD estricto** como práctica base:
 
-\## 2. Objetivos de Calidad
+- RED: escribir un test que falle y defina el comportamiento.
+- GREEN: implementar lo mínimo para pasar el test.
+- REFACTOR: mejorar diseño manteniendo tests verdes.
 
-
-
-La estrategia de testing del sistema persigue los siguientes objetivos:
-
-
-
-\- Detectar errores lo antes posible.
-
-\- Garantizar la corrección de reglas de negocio.
-
-\- Evitar regresiones funcionales.
-
-\- Validar contratos entre componentes.
-
-\- Asegurar trazabilidad y auditabilidad.
-
-\- Reducir el riesgo operativo en producción.
-
-
-
-La calidad se considera un \*\*atributo transversal\*\*, no una fase final.
-
-
+Regla operativa:
+- No se incorpora una feature sin tests y sin reflejo documental mínimo cuando corresponda.
 
 ---
 
+## 3. Niveles de Testing
 
+### 3.1 Unitarios de Dominio
 
-\## 3. Principios de Testing Aplicados
-
-
-
-La estrategia se rige por los siguientes principios:
-
-
-
-\- \*\*Testing piramidal\*\*: más tests unitarios que integraciones.
-
-\- \*\*Tests determinísticos\*\*: sin dependencia de servicios externos reales.
-
-\- \*\*Tests aislados del framework\*\*: foco en dominio y casos de uso.
-
-\- \*\*Contratos explícitos\*\* entre componentes.
-
-\- \*\*Fallos reproducibles\*\*, no intermitentes.
-
-\- \*\*Cobertura significativa\*\*, no inflada artificialmente.
-
-
+- Entidades y reglas determinísticas.
+- Validación de invariantes (ej: coherencia OHLC).
+- Cálculo de KPIs técnicos.
 
 ---
 
+### 3.2 Tests de Casos de Uso
 
-
-\## 4. Niveles de Testing
-
-
-
-\### 4.1 Tests Unitarios de Dominio
-
-
-
-\*\*Alcance\*\*:
-
-\- Entidades de dominio.
-
-\- Reglas de negocio.
-
-\- Validaciones y cálculos.
-
-
-
-\*\*Características\*\*:
-
-\- Sin acceso a base de datos.
-
-\- Sin acceso a red.
-
-\- Sin mocks complejos.
-
-\- Ejecución rápida.
-
-
-
-\*\*Ejemplos de validación\*\*:
-
-\- Cálculo correcto de indicadores.
-
-\- Validación de coherencia OHLC.
-
-\- Reglas de portafolio.
-
-
+- Orquestación de lógica en aplicación.
+- Puertos mockeados o fakes.
+- Validación de flujos principales y alternativos.
 
 ---
 
+### 3.3 Integración
 
-
-\### 4.2 Tests de Casos de Uso (Application Layer)
-
-
-
-\*\*Alcance\*\*:
-
-\- Casos de uso completos.
-
-\- Orquestación de lógica.
-
-\- Flujos principales y alternativos.
-
-
-
-\*\*Características\*\*:
-
-\- Uso de puertos mockeados o fake.
-
-\- Validación de precondiciones y postcondiciones.
-
-\- Verificación de efectos observables.
-
-
-
-\*\*Ejemplos\*\*:
-
-\- IngestMarketData con proveedor simulado.
-
-\- GenerateInvestmentRecommendation con IA stub.
-
-
+- Repositorios reales (Supabase) mediante tests opt-in.
+- Limpieza controlada de datos por asset en entorno de test.
+- Verificación de idempotencia (unique/upsert).
 
 ---
 
+### 3.4 Tests de Contrato
 
-
-\### 4.3 Tests de Integración
-
-
-
-\*\*Alcance\*\*:
-
-\- Integración con base de datos.
-
-\- Integración con colas.
-
-\- Serialización y persistencia.
-
-
-
-\*\*Características\*\*:
-
-\- Uso de infraestructura real o emulada.
-
-\- Datos controlados.
-
-\- Ejecución menos frecuente que unitarios.
-
-
+- Contrato entre aplicación e infraestructura:
+  - provider de mercado,
+  - repositorios,
+  - proveedor de IA.
+- Contratos de API (request/response) con esquemas.
 
 ---
 
+### 3.5 End-to-End (E2E)
 
-
-\### 4.4 Tests de Contrato
-
-
-
-\*\*Alcance\*\*:
-
-\- Contratos entre:
-
-&nbsp; - casos de uso y proveedores externos,
-
-&nbsp; - API y clientes,
-
-&nbsp; - sistema y modelos de IA.
-
-
-
-\*\*Objetivo\*\*:
-
-\- Detectar cambios incompatibles.
-
-\- Garantizar estabilidad de interfaces.
-
-
+- Flujo login → dashboard → disparo ADMIN → visualización datos.
+- Cantidad reducida, foco en flujos críticos.
 
 ---
 
+## 4. Testing Específico de IA
 
+### 4.1 Qué se testea
 
-\### 4.5 Tests End-to-End (E2E)
-
-
-
-\*\*Alcance\*\*:
-
-\- Flujos críticos completos desde UI o API.
-
-
-
-\*\*Características\*\*:
-
-\- Cantidad limitada.
-
-\- Ejecución en pipelines de CI.
-
-\- No cubren todos los casos.
-
-
-
-\*\*Ejemplos\*\*:
-
-\- Login + acceso a dashboard.
-
-\- Solicitud de recomendación IA.
-
-
+- Construcción determinística del input a IA (snapshot).
+- Versionado de prompt.
+- Validación estricta del output (esquema):
+  - existencia de campos obligatorios,
+  - tipos correctos,
+  - rangos válidos (confidence_score 0..1),
+  - action ∈ {BUY,HOLD,SELL}.
+- Persistencia de auditoría:
+  - input_snapshot_hash,
+  - model_version,
+  - prompt_version,
+  - output_schema_version.
 
 ---
 
+### 4.2 Qué no se testea
 
+- “Si la IA acierta el mercado”.
+- “Si el insight es financieramente verdadero”.
+- Predicción futura de rentabilidad.
 
-\## 5. Testing del Pipeline de Datos
-
-
-
-Dado el carácter crítico de los datos financieros, el pipeline requiere testing específico.
-
-
-
-\### 5.1 Validación de Datos
-
-
-
-\- Validación estructural de inputs.
-
-\- Validación de rangos numéricos.
-
-\- Validación de orden temporal.
-
-
+El objetivo de testing es asegurar que:
+- el sistema usa IA de forma controlada,
+- la salida es validable y auditada,
+- las alucinaciones se mitigan con validación y guardrails.
 
 ---
 
+### 4.3 Estrategia de tests de IA
 
+Se definen tres tipos de pruebas:
 
-\### 5.2 Testing de Gaps e Interpolación
+1) Tests unitarios de normalización/validación  
+- Dado un output, se valida que cumple el esquema.
 
+2) Tests con stubs determinísticos  
+- IAProviderPort retorna respuestas predefinidas.
+- Se testea la orquestación sin depender de red.
 
-
-\- Simulación de gaps por tipo de mercado.
-
-\- Verificación de reglas de forward-fill.
-
-\- Confirmación de flags de interpolación.
-
-
-
----
-
-
-
-\### 5.3 Idempotencia
-
-
-
-\- Reejecución de ingestas duplicadas.
-
-\- Verificación de no-duplicación de datos.
-
-\- Consistencia tras retries.
-
-
+3) Tests de integración opt-in (si aplica)  
+- Con credenciales reales, se prueba la llamada a un modelo real.
+- Se marca como opt-in para no romper CI.
 
 ---
 
+## 5. Cobertura y Criterios
 
-
-\## 6. Testing de Sistemas con IA
-
-
-
-El uso de IA requiere una estrategia de testing específica.
-
-
-
-\### 6.1 Qué se Testea
-
-
-
-\- Construcción correcta del input.
-
-\- Validación del output contra esquema.
-
-\- Manejo de errores del modelo.
-
-\- Persistencia correcta de auditoría.
-
-
+- Cobertura mínima objetivo: 70%, priorizando dominio y casos de uso.
+- En IA, se prioriza cobertura de validación de outputs y auditoría.
+- Se evita perseguir 100% de cobertura sin sentido.
 
 ---
 
+## 6. Integración Continua (CI)
 
-
-\### 6.2 Qué NO se Testea
-
-
-
-\- “Calidad” subjetiva del razonamiento del modelo.
-
-\- Predicciones de mercado.
-
-\- Exactitud financiera futura.
-
-
-
-El sistema testea \*\*el uso de la IA\*\*, no la IA en sí.
-
-
+- Tests unitarios y de casos de uso corren siempre.
+- Tests de integración (Supabase, IA real) son opt-in por variables de entorno.
+- Bloqueo de merges ante fallos.
+- Reporte de resultados.
 
 ---
 
+## 7. Consideraciones Finales
 
-
-\### 6.3 Testing Determinístico
-
-
-
-\- Uso de stubs o respuestas fijas del modelo.
-
-\- No dependencia de APIs reales en CI.
-
-\- Reproducibilidad de resultados.
-
-
+- TDD es parte del proceso, no un agregado.
+- El sistema mantiene separación estricta por capas.
+- La IA se integra con disciplina: input estructurado, output validado, auditoría completa.
+- Este documento es vinculante para la evolución del sistema.
 
 ---
-
-
-
-\## 7. Cobertura y Métricas
-
-
-
-\### 7.1 Cobertura
-
-
-
-\- Cobertura mínima objetivo: 70%.
-
-\- Prioridad en dominio y casos de uso.
-
-\- No se persigue cobertura del 100%.
-
-
-
----
-
-
-
-\### 7.2 Métricas de Calidad
-
-
-
-\- Número de tests por capa.
-
-\- Tiempo de ejecución de la suite.
-
-\- Número de fallos en CI.
-
-\- Defectos detectados en producción.
-
-
-
----
-
-
-
-\## 8. Integración Continua (CI)
-
-
-
-La estrategia de testing se integra en el pipeline de CI:
-
-
-
-\- Ejecución automática de tests unitarios y de casos de uso.
-
-\- Ejecución de tests de integración en branches principales.
-
-\- Bloqueo de merge ante fallos.
-
-\- Reporte automático de resultados.
-
-
-
----
-
-
-
-\## 9. Alternativas Consideradas
-
-
-
-\### 9.1 Solo Tests Manuales
-
-
-
-Rechazados por:
-
-\- baja reproducibilidad,
-
-\- alto costo,
-
-\- riesgo elevado.
-
-
-
----
-
-
-
-\### 9.2 Solo Tests End-to-End
-
-
-
-Rechazados por:
-
-\- fragilidad,
-
-\- lentitud,
-
-\- bajo poder diagnóstico.
-
-
-
----
-
-
-
-\## 10. Consideraciones Finales
-
-
-
-\- La calidad es parte del diseño.
-
-\- Los tests documentan el comportamiento esperado.
-
-\- Un sistema con IA exige mayor disciplina de testing.
-
-\- Este documento es vinculante para la implementación.
-
-
-
----
-
-
-
