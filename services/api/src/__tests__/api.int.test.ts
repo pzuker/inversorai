@@ -28,30 +28,33 @@ describeIfSupabase('API Integration Tests', () => {
       .eq('asset_symbol', TEST_SYMBOL);
   });
 
-  describe('POST /api/v1/admin/market/ingest-and-persist', () => {
-    const endpoint = '/api/v1/admin/market/ingest-and-persist';
+  describe('POST /api/v1/admin/pipeline/run', () => {
+    const endpoint = '/api/v1/admin/pipeline/run';
 
     it('returns 401 without auth header', async () => {
-      const response = await request(app).post(endpoint);
+      const response = await request(app).post(endpoint).query({ symbol: TEST_SYMBOL });
       expect(response.status).toBe(401);
     });
 
     it('returns 403 with USER role', async () => {
       const response = await request(app)
         .post(endpoint)
+        .query({ symbol: TEST_SYMBOL })
         .set('x-user-role', 'USER');
       expect(response.status).toBe(403);
     });
 
-    it('returns 200 with ADMIN role and includes counts', async () => {
+    it('returns 200 with ADMIN role and includes pipeline summary', async () => {
       const response = await request(app)
         .post(endpoint)
+        .query({ symbol: TEST_SYMBOL })
         .set('x-user-role', 'ADMIN');
 
       expect(response.status).toBe(200);
-      expect(response.body.ingestedCount).toBeGreaterThan(0);
-      expect(response.body.persistedCount).toBeGreaterThan(0);
-    });
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.assetSymbol).toBe(TEST_SYMBOL);
+      expect(response.body.data.ingestedCount).toBeGreaterThan(0);
+    }, 30000); // Pipeline calls external APIs
   });
 
   describe('GET /api/v1/market-data', () => {
@@ -63,8 +66,10 @@ describeIfSupabase('API Integration Tests', () => {
     });
 
     it('returns 200 with USER role and ordered data', async () => {
+      // Run pipeline to populate data
       await request(app)
-        .post('/api/v1/admin/market/ingest-and-persist')
+        .post('/api/v1/admin/pipeline/run')
+        .query({ symbol: TEST_SYMBOL })
         .set('x-user-role', 'ADMIN');
 
       const response = await request(app)
@@ -81,6 +86,6 @@ describeIfSupabase('API Integration Tests', () => {
         const curr = new Date(response.body.data[i].timestamp);
         expect(curr.getTime()).toBeGreaterThan(prev.getTime());
       }
-    });
+    }, 30000); // Pipeline calls external APIs
   });
 });

@@ -15,7 +15,7 @@ import {
   PriceChart,
 } from '@/components/dashboard';
 import { useMarketData, useLatestRecommendation, useLatestInsight } from '@/hooks';
-import { triggerIngest } from '@/lib/apiClient';
+import { runPipeline, type PipelineResult } from '@/lib/apiClient';
 
 const ADMIN_EMAIL = 'admin@inversorai.com';
 const CURRENT_ASSET = 'BTC-USD';
@@ -47,9 +47,9 @@ export default function DashboardPage() {
     refetch: refetchInsight,
   } = useLatestInsight(CURRENT_ASSET);
 
-  const [ingestLoading, setIngestLoading] = useState(false);
-  const [ingestResult, setIngestResult] = useState<{ ingestedCount: number; persistedCount: number } | null>(null);
-  const [ingestError, setIngestError] = useState<string | null>(null);
+  const [pipelineLoading, setPipelineLoading] = useState(false);
+  const [pipelineResult, setPipelineResult] = useState<PipelineResult | null>(null);
+  const [pipelineError, setPipelineError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !session) {
@@ -61,21 +61,21 @@ export default function DashboardPage() {
     await Promise.all([refetchMarket(), refetchRecommendation(), refetchInsight()]);
   };
 
-  const handleIngest = async () => {
+  const handleRunPipeline = async () => {
     if (!session?.access_token) return;
 
-    setIngestLoading(true);
-    setIngestError(null);
-    setIngestResult(null);
+    setPipelineLoading(true);
+    setPipelineError(null);
+    setPipelineResult(null);
 
     try {
-      const result = await triggerIngest(session.access_token);
-      setIngestResult(result);
+      const result = await runPipeline(session.access_token, CURRENT_ASSET);
+      setPipelineResult(result);
       await handleRefreshAll();
     } catch (err) {
-      setIngestError(err instanceof Error ? err.message : 'Failed to ingest');
+      setPipelineError(err instanceof Error ? err.message : 'Failed to run pipeline');
     } finally {
-      setIngestLoading(false);
+      setPipelineLoading(false);
     }
   };
 
@@ -129,29 +129,31 @@ export default function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-4">
-                <Button
-                  onClick={handleIngest}
-                  disabled={ingestLoading}
-                  size="sm"
-                >
-                  {ingestLoading ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      Updating...
-                    </>
-                  ) : (
-                    'Update Market Data'
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-4">
+                  <Button
+                    onClick={handleRunPipeline}
+                    disabled={pipelineLoading}
+                    size="sm"
+                  >
+                    {pipelineLoading ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Running Pipeline...
+                      </>
+                    ) : (
+                      'Update Market Data'
+                    )}
+                  </Button>
+                  {pipelineResult && (
+                    <span className="text-sm text-green-600 dark:text-green-400">
+                      {pipelineResult.ingestedCount} points ingested - {pipelineResult.recommendationAction}
+                    </span>
                   )}
-                </Button>
-                {ingestResult && (
-                  <span className="text-sm text-green-600 dark:text-green-400">
-                    Ingested: {ingestResult.ingestedCount}, Persisted: {ingestResult.persistedCount}
-                  </span>
-                )}
-                {ingestError && (
-                  <span className="text-sm text-destructive">{ingestError}</span>
-                )}
+                  {pipelineError && (
+                    <span className="text-sm text-destructive">{pipelineError}</span>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>

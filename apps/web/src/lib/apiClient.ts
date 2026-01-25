@@ -10,9 +10,16 @@ export interface MarketDataPoint {
   volume: number;
 }
 
-export interface IngestResult {
+export interface PipelineResult {
+  assetSymbol: string;
+  resolution: string;
   ingestedCount: number;
-  persistedCount: number;
+  indicatorComputed: boolean;
+  analysisGenerated: boolean;
+  insightGenerated: boolean;
+  trend: string;
+  recommendationAction: string;
+  executedAt: string;
 }
 
 export interface Recommendation {
@@ -94,18 +101,20 @@ export async function fetchLatestInsight(token: string, symbol: string = 'BTC-US
   return data.data;
 }
 
-export async function triggerIngest(token: string): Promise<IngestResult> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/admin/market/ingest-and-persist`, {
+export async function runPipeline(token: string, symbol: string = 'BTC-USD'): Promise<PipelineResult> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/pipeline/run?symbol=${symbol}`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
       'x-user-role': 'ADMIN',
+      'Content-Type': 'application/json',
     },
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to trigger ingest: ${response.status}`);
+    throw new Error(`Failed to run pipeline: ${response.status}`);
   }
 
-  return response.json();
+  const data = await response.json();
+  return data.data;
 }

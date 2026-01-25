@@ -2,7 +2,6 @@ import express, { type Express } from 'express';
 import cors from 'cors';
 import { authenticate, requireAdmin } from './middlewares/index.js';
 import {
-  AdminIngestController,
   MarketDataQueryController,
   GetLatestInvestmentInsightController,
   GetLatestRecommendationController,
@@ -18,19 +17,12 @@ export function createApp(): Express {
   }));
   app.use(express.json());
 
-  const adminIngestController = new AdminIngestController();
   const marketDataQueryController = new MarketDataQueryController();
   const getLatestInsightController = new GetLatestInvestmentInsightController();
   const getLatestRecommendationController = new GetLatestRecommendationController();
   const runPipelineController = new RunMarketAnalysisPipelineController();
 
-  app.post(
-    '/api/v1/admin/market/ingest-and-persist',
-    authenticate,
-    requireAdmin,
-    (req, res) => adminIngestController.ingestAndPersist(req, res)
-  );
-
+  // Read endpoints - use only Supabase repositories
   app.get(
     '/api/v1/market-data',
     authenticate,
@@ -49,6 +41,7 @@ export function createApp(): Express {
     (req, res) => getLatestRecommendationController.handle(req, res)
   );
 
+  // Admin endpoint - runs full pipeline with real data
   app.post(
     '/api/v1/admin/pipeline/run',
     authenticate,
