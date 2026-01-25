@@ -31,3 +31,5 @@ coverage/
 # Misc
 *.tmp
 *.temp
+
+PROMPT.md
