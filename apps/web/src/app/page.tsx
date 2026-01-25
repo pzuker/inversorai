@@ -19,8 +19,8 @@ export default function Home() {
   }, [session, loading, router]);
 
   return (
-    <div style={{ padding: '2rem', textAlign: 'center' }}>
-      <p>Loading...</p>
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="animate-pulse text-muted-foreground">Loading...</div>
     </div>
   );
 }
