@@ -1,7 +1,12 @@
 import express, { type Express } from 'express';
 import cors from 'cors';
 import { authenticate, requireAdmin } from './middlewares/index.js';
-import { AdminIngestController, MarketDataQueryController } from './controllers/index.js';
+import {
+  AdminIngestController,
+  MarketDataQueryController,
+  GetLatestInvestmentInsightController,
+  GetLatestRecommendationController,
+} from './controllers/index.js';
 
 export function createApp(): Express {
   const app = express();
@@ -14,6 +19,8 @@ export function createApp(): Express {
 
   const adminIngestController = new AdminIngestController();
   const marketDataQueryController = new MarketDataQueryController();
+  const getLatestInsightController = new GetLatestInvestmentInsightController();
+  const getLatestRecommendationController = new GetLatestRecommendationController();
 
   app.post(
     '/api/v1/admin/market/ingest-and-persist',
@@ -26,6 +33,18 @@ export function createApp(): Express {
     '/api/v1/market-data',
     authenticate,
     (req, res) => marketDataQueryController.getBySymbol(req, res)
+  );
+
+  app.get(
+    '/api/v1/insights/latest',
+    authenticate,
+    (req, res) => getLatestInsightController.handle(req, res)
+  );
+
+  app.get(
+    '/api/v1/recommendations/latest',
+    authenticate,
+    (req, res) => getLatestRecommendationController.handle(req, res)
   );
 
   return app;
