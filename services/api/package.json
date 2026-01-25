@@ -1,0 +1,16 @@
+{
+  "name": "@inversorai/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "dev": "echo \"dev: not implemented yet\"",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.10",
+    "typescript": "^5.3.3",
+    "vitest": "^4.0.18"
+  }
+}
