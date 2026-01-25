@@ -1,12 +1,18 @@
 import express, { type Express } from 'express';
 import cors from 'cors';
-import { authenticate, requireAdmin } from './middlewares/index.js';
+import { authenticate, requireAdmin, createRateLimiter } from './middlewares/index.js';
 import {
   MarketDataQueryController,
   GetLatestInvestmentInsightController,
   GetLatestRecommendationController,
   RunMarketAnalysisPipelineController,
 } from './controllers/index.js';
+
+// Rate limiter: 1 request per 5 minutes for pipeline
+const pipelineRateLimiter = createRateLimiter({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  maxRequests: 1,
+});
 
 export function createApp(): Express {
   const app = express();
@@ -22,7 +28,7 @@ export function createApp(): Express {
   const getLatestRecommendationController = new GetLatestRecommendationController();
   const runPipelineController = new RunMarketAnalysisPipelineController();
 
-  // Read endpoints - use only Supabase repositories
+  // Read endpoints - use only Supabase repositories (no rate limiting)
   app.get(
     '/api/v1/market-data',
     authenticate,
@@ -41,11 +47,12 @@ export function createApp(): Express {
     (req, res) => getLatestRecommendationController.handle(req, res)
   );
 
-  // Admin endpoint - runs full pipeline with real data
+  // Admin endpoint - runs full pipeline with real data (rate limited)
   app.post(
     '/api/v1/admin/pipeline/run',
     authenticate,
     requireAdmin,
+    pipelineRateLimiter,
     (req, res) => runPipelineController.run(req, res)
   );
 
