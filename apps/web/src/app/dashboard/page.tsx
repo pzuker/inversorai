@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { RefreshCw } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Header } from '@/components/header';
+import { AssetSelector } from '@/components/asset-selector';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,13 +17,15 @@ import {
 } from '@/components/dashboard';
 import { useMarketData, useLatestRecommendation, useLatestInsight } from '@/hooks';
 import { runPipeline, type PipelineResult } from '@/lib/apiClient';
+import { DEFAULT_ASSET, getAssetTypeLabel, type Asset } from '@/lib/assets';
 
 const ADMIN_EMAIL = 'admin@inversorai.com';
-const CURRENT_ASSET = 'BTC-USD';
 
 export default function DashboardPage() {
   const { user, session, loading: authLoading } = useAuth();
   const router = useRouter();
+
+  const [currentAsset, setCurrentAsset] = useState<Asset>(DEFAULT_ASSET);
 
   const isAdmin = user?.email === ADMIN_EMAIL;
 
@@ -31,21 +34,21 @@ export default function DashboardPage() {
     loading: marketLoading,
     error: marketError,
     refetch: refetchMarket,
-  } = useMarketData(CURRENT_ASSET);
+  } = useMarketData(currentAsset.symbol);
 
   const {
     data: recommendation,
     loading: recommendationLoading,
     error: recommendationError,
     refetch: refetchRecommendation,
-  } = useLatestRecommendation(CURRENT_ASSET);
+  } = useLatestRecommendation(currentAsset.symbol);
 
   const {
     data: insight,
     loading: insightLoading,
     error: insightError,
     refetch: refetchInsight,
-  } = useLatestInsight(CURRENT_ASSET);
+  } = useLatestInsight(currentAsset.symbol);
 
   const [pipelineLoading, setPipelineLoading] = useState(false);
   const [pipelineResult, setPipelineResult] = useState<PipelineResult | null>(null);
@@ -57,9 +60,15 @@ export default function DashboardPage() {
     }
   }, [session, authLoading, router]);
 
-  const handleRefreshAll = async () => {
+  const handleRefreshAll = useCallback(async () => {
     await Promise.all([refetchMarket(), refetchRecommendation(), refetchInsight()]);
-  };
+  }, [refetchMarket, refetchRecommendation, refetchInsight]);
+
+  const handleAssetChange = useCallback((asset: Asset) => {
+    setCurrentAsset(asset);
+    setPipelineResult(null);
+    setPipelineError(null);
+  }, []);
 
   const handleRunPipeline = async () => {
     if (!session?.access_token) return;
@@ -69,7 +78,7 @@ export default function DashboardPage() {
     setPipelineResult(null);
 
     try {
-      const result = await runPipeline(session.access_token, CURRENT_ASSET);
+      const result = await runPipeline(session.access_token, currentAsset.symbol);
       setPipelineResult(result);
       await handleRefreshAll();
     } catch (err) {
@@ -95,18 +104,28 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header currentAsset={CURRENT_ASSET} />
+      <Header currentAsset={currentAsset.symbol} />
 
       <main className="container mx-auto max-w-7xl px-4 py-6 space-y-6">
         {/* Page header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+              <Badge variant="outline" className="text-xs">
+                {getAssetTypeLabel(currentAsset.type)}
+              </Badge>
+            </div>
             <p className="text-muted-foreground">
-              Market analysis and AI insights for {CURRENT_ASSET}
+              Market analysis and AI insights for {currentAsset.name}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <AssetSelector
+              value={currentAsset.symbol}
+              onChange={handleAssetChange}
+              disabled={isLoading || pipelineLoading}
+            />
             <Button
               variant="outline"
               size="sm"
