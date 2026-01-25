@@ -12,7 +12,15 @@
       "Bash(npx vitest:*)",
       "Bash(git rm:*)",
       "Bash(npx tsc --noEmit)",
-      "Bash(powershell -Command:*)"
+      "Bash(powershell -Command:*)",
+      "Bash(curl:*)",
+      "Bash(taskkill:*)",
+      "Bash(timeout /t 3 /nobreak)",
+      "Bash(ping:*)",
+      "Bash(lsof:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(timeout 10 node:*)"
     ]
   }
 }

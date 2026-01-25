@@ -6,6 +6,7 @@ import {
   MarketDataQueryController,
   GetLatestInvestmentInsightController,
   GetLatestRecommendationController,
+  RunMarketAnalysisPipelineController,
 } from './controllers/index.js';
 
 export function createApp(): Express {
@@ -21,6 +22,7 @@ export function createApp(): Express {
   const marketDataQueryController = new MarketDataQueryController();
   const getLatestInsightController = new GetLatestInvestmentInsightController();
   const getLatestRecommendationController = new GetLatestRecommendationController();
+  const runPipelineController = new RunMarketAnalysisPipelineController();
 
   app.post(
     '/api/v1/admin/market/ingest-and-persist',
@@ -45,6 +47,13 @@ export function createApp(): Express {
     '/api/v1/recommendations/latest',
     authenticate,
     (req, res) => getLatestRecommendationController.handle(req, res)
+  );
+
+  app.post(
+    '/api/v1/admin/pipeline/run',
+    authenticate,
+    requireAdmin,
+    (req, res) => runPipelineController.run(req, res)
   );
 
   return app;
