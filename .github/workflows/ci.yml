@@ -41,14 +41,21 @@ jobs:
       - name: Security audit (production dependencies)
         run: npm audit --omit=dev --audit-level=high
 
-      - name: Backend tests (unit only)
+      - name: Backend tests with coverage
         working-directory: services/api
         env:
           # Placeholder URL for module initialization (some imports reference env vars).
           # SUPABASE_SERVICE_ROLE_KEY and OPENAI_API_KEY are intentionally NOT set
           # to ensure integration tests are skipped in CI.
           SUPABASE_URL: https://placeholder.supabase.co
-        run: npm test
+        run: npm run test:coverage
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: services/api/coverage/lcov.info
+          retention-days: 30
 
       - name: Backend build
         working-directory: services/api

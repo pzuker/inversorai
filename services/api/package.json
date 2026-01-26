@@ -8,9 +8,11 @@
     "dev": "echo \"dev: not implemented yet\"",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "bootstrap:admin": "npm run build && node dist/runners/bootstrapInitialAdmin.js"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.18",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/nock": "^10.0.3",

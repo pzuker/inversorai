@@ -10,5 +10,17 @@ process.env['DISABLE_RATE_LIMIT'] = 'true';
 export default defineConfig({
   test: {
     exclude: ['**/node_modules/**', '**/dist/**'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      include: ['src/**/*.ts'],
+      exclude: [
+        '**/node_modules/**',
+        '**/dist/**',
+        'src/__tests__/**',
+        'src/**/*.test.ts',
+        'src/**/*.int.test.ts',
+      ],
+    },
   },
 });
