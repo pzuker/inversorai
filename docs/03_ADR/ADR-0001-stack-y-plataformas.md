@@ -1,14 +1,14 @@
-\# ADR-0001 — Stack Tecnológico y Plataformas de Despliegue
+# ADR-0001 — Stack Tecnológico y Plataformas de Despliegue
 
 
 
-\*\*Estado:\*\* Aprobado  
+**Estado:** Aprobado  
 
-\*\*Fecha:\*\* 2025-01-24  
+**Fecha:** 2026-01-25  
 
-\*\*Decisores:\*\* Equipo InversorAI  
+**Decisores:** Equipo InversorAI  
 
-\*\*Contexto:\*\* Trabajo Final de Máster – Desarrollo de Sistemas con IA  
+**Contexto:** Trabajo Final de Máster – Desarrollo de Sistemas con IA  
 
 
 
@@ -16,19 +16,19 @@
 
 
 
-\## 1. Contexto
+## 1. Contexto
 
 
 
-El proyecto \*\*InversorAI\*\* consiste en una plataforma fullstack de análisis de mercados financieros con inteligencia artificial, orientada a:
+El proyecto **InversorAI** consiste en una plataforma fullstack de análisis de mercados financieros con inteligencia artificial, orientada a:
 
 
 
-\- Acciones (STOCK)
+- Acciones (STOCK)
 
-\- Criptomonedas (CRYPTO)
+- Criptomonedas (CRYPTO)
 
-\- Divisas (FX)
+- Divisas (FX)
 
 
 
@@ -36,19 +36,19 @@ El sistema debe cumplir con los siguientes requisitos clave:
 
 
 
-\- Arquitectura limpia y mantenible (Clean Architecture / Hexagonal).
+- Arquitectura limpia y mantenible (Clean Architecture / Hexagonal).
 
-\- Automatización completa de ingesta y procesamiento de datos (sin archivos manuales).
+- Automatización completa de ingesta y procesamiento de datos (sin archivos manuales).
 
-\- Recomendaciones de inversión generadas por IA con \*\*trazabilidad, auditabilidad y explicabilidad\*\*.
+- Recomendaciones de inversión generadas por IA con **trazabilidad, auditabilidad y explicabilidad**.
 
-\- Seguridad alineada con \*\*OWASP Top 10\*\* y preparada para monetización.
+- Seguridad alineada con **OWASP Top 10** y preparada para monetización.
 
-\- Separación clara de responsabilidades (web, API, workers).
+- Separación clara de responsabilidades (web, API, workers).
 
-\- Capacidad de despliegue real en producción con bajo costo operativo.
+- Capacidad de despliegue real en producción con bajo costo operativo.
 
-\- Facilidad para pasar de entorno local a producción sin rediseños.
+- Facilidad para pasar de entorno local a producción sin rediseños.
 
 
 
@@ -56,13 +56,13 @@ El contexto académico del TFM exige, además:
 
 
 
-\- Uso de tecnologías actuales y ampliamente aceptadas en la industria.
+- Uso de tecnologías actuales y ampliamente aceptadas en la industria.
 
-\- Justificación explícita de decisiones técnicas.
+- Justificación explícita de decisiones técnicas.
 
-\- Evitar sobre–ingeniería innecesaria (ej. Kubernetes, microservicios complejos).
+- Evitar sobre–ingeniería innecesaria (ej. Kubernetes, microservicios complejos).
 
-\- Evidencia de comprensión de trade-offs y riesgos.
+- Evidencia de comprensión de trade-offs y riesgos.
 
 
 
@@ -70,37 +70,37 @@ El contexto académico del TFM exige, además:
 
 
 
-\## 2. Decisión
+## 2. Decisión
 
 
 
-Se adopta el siguiente \*\*stack tecnológico y de plataformas\*\* para el MVP y despliegue inicial en producción.
+Se adopta el siguiente **stack tecnológico y de plataformas** para el MVP y despliegue inicial en producción.
 
 
 
-\### 2.1 Arquitectura General
+### 2.1 Arquitectura General
 
 
 
-\- \*\*Arquitectura:\*\* Clean Architecture / Hexagonal
+- **Arquitectura:** Clean Architecture / Hexagonal
 
-\- \*\*Repositorio:\*\* Monorepo
+- **Repositorio:** Monorepo
 
-\- \*\*Lenguaje:\*\* TypeScript end-to-end
+- **Lenguaje:** TypeScript end-to-end
 
-\- \*\*Paradigma:\*\* Backend orientado a casos de uso, frontend desacoplado, workers asíncronos
-
-
-
-\### 2.2 Frontend (Web)
+- **Paradigma:** Backend orientado a casos de uso, frontend desacoplado. (Workers/colas quedan como línea futura; el MVP ejecuta pipeline on-demand.)
 
 
 
-\- \*\*Framework:\*\* Next.js
+### 2.2 Frontend (Web)
 
-\- \*\*Tipo:\*\* SPA con capacidades SSR/SSG cuando aplique
 
-\- \*\*Responsabilidades:\*\*
+
+- **Framework:** Next.js
+
+- **Tipo:** SPA con capacidades SSR/SSG cuando aplique
+
+- **Responsabilidades:**
 
 &nbsp; - Autenticación de usuarios (via IdP)
 
@@ -112,7 +112,7 @@ Se adopta el siguiente \*\*stack tecnológico y de plataformas\*\* para el MVP y
 
 &nbsp; - Optimización de portafolio
 
-\- \*\*Motivos:\*\*
+- **Motivos:**
 
 &nbsp; - Excelente DX y UX
 
@@ -124,15 +124,15 @@ Se adopta el siguiente \*\*stack tecnológico y de plataformas\*\* para el MVP y
 
 
 
-\### 2.3 Backend API
+### 2.3 Backend API
 
 
 
-\- \*\*Framework:\*\* NestJS
+- **Framework:** NestJS
 
-\- \*\*Tipo:\*\* API REST
+- **Tipo:** API REST
 
-\- \*\*Responsabilidades:\*\*
+- **Responsabilidades:**
 
 &nbsp; - Exposición de endpoints versionados (`/api/v1`)
 
@@ -144,7 +144,7 @@ Se adopta el siguiente \*\*stack tecnológico y de plataformas\*\* para el MVP y
 
 &nbsp; - Acceso a datos (vía puertos)
 
-\- \*\*Motivos:\*\*
+- **Motivos:**
 
 &nbsp; - Enfoque arquitectónico claro
 
@@ -156,13 +156,13 @@ Se adopta el siguiente \*\*stack tecnológico y de plataformas\*\* para el MVP y
 
 
 
-\### 2.4 Workers Asíncronos
+### 2.4 Workers Asíncronos
 
 
 
-\- \*\*Runtime:\*\* Node.js (TypeScript)
+- **Runtime:** Node.js (TypeScript)
 
-\- \*\*Responsabilidades:\*\*
+- **Responsabilidades:**
 
 &nbsp; - Ingesta de datos de mercado
 
@@ -170,9 +170,9 @@ Se adopta el siguiente \*\*stack tecnológico y de plataformas\*\* para el MVP y
 
 &nbsp; - Generación de recomendaciones IA
 
-\- \*\*Comunicación:\*\* Cola de mensajes
+- **Comunicación:** Cola de mensajes
 
-\- \*\*Motivos:\*\*
+- **Motivos:**
 
 &nbsp; - Separación clara entre procesamiento y API
 
@@ -182,17 +182,17 @@ Se adopta el siguiente \*\*stack tecnológico y de plataformas\*\* para el MVP y
 
 
 
-\### 2.5 Base de Datos
+### 2.5 Base de Datos
 
 
 
-\- \*\*Motor:\*\* PostgreSQL 17+
+- **Motor:** PostgreSQL 17+
 
-\- \*\*Proveedor:\*\* Supabase
+- **Proveedor:** Supabase
 
-\- \*\*Extensión:\*\* TimescaleDB (si está disponible)
+- **Extensión:** TimescaleDB (si está disponible)
 
-\- \*\*Uso:\*\*
+- **Uso:**
 
 &nbsp; - Series temporales de mercado
 
@@ -202,7 +202,7 @@ Se adopta el siguiente \*\*stack tecnológico y de plataformas\*\* para el MVP y
 
 &nbsp; - Auditoría de eventos
 
-\- \*\*Motivos:\*\*
+- **Motivos:**
 
 &nbsp; - Estándar industrial
 
@@ -214,15 +214,15 @@ Se adopta el siguiente \*\*stack tecnológico y de plataformas\*\* para el MVP y
 
 
 
-\### 2.6 Autenticación e Identidad
+### 2.6 Autenticación e Identidad
 
 
 
-\- \*\*Proveedor:\*\* Supabase Auth
+- **Proveedor:** Supabase Auth
 
-\- \*\*Estándar:\*\* OIDC / OAuth2
+- **Estándar:** OIDC / OAuth2
 
-\- \*\*Modelo:\*\*
+- **Modelo:**
 
 &nbsp; - Autenticación delegada completamente
 
@@ -230,7 +230,7 @@ Se adopta el siguiente \*\*stack tecnológico y de plataformas\*\* para el MVP y
 
 &nbsp; - Roles ADMIN / USER
 
-\- \*\*Motivos:\*\*
+- **Motivos:**
 
 &nbsp; - Cumplimiento de estándares
 
@@ -242,21 +242,21 @@ Se adopta el siguiente \*\*stack tecnológico y de plataformas\*\* para el MVP y
 
 
 
-\### 2.7 Colas y Cache
+### 2.7 Colas y Cache
 
 
 
-\- \*\*Sistema:\*\* Redis
+- **Sistema:** Redis
 
-\- \*\*Proveedor:\*\* Upstash
+- **Proveedor:** Upstash
 
-\- \*\*Uso:\*\*
+- **Uso:**
 
 &nbsp; - Cola de jobs (BullMQ)
 
 &nbsp; - Cache de queries frecuentes
 
-\- \*\*Motivos:\*\*
+- **Motivos:**
 
 &nbsp; - Servicio gestionado
 
@@ -266,17 +266,17 @@ Se adopta el siguiente \*\*stack tecnológico y de plataformas\*\* para el MVP y
 
 
 
-\### 2.8 Inteligencia Artificial
+### 2.8 Inteligencia Artificial
 
 
 
-\- \*\*Proveedor:\*\* OpenAI (SDK oficial)
+- **Proveedor:** OpenAI (SDK oficial)
 
-\- \*\*Uso:\*\*
+- **Uso:**
 
 &nbsp; - Generación de recomendaciones de inversión
 
-\- \*\*Controles:\*\*
+- **Controles:**
 
 &nbsp; - Prompt versionado
 
@@ -284,7 +284,7 @@ Se adopta el siguiente \*\*stack tecnológico y de plataformas\*\* para el MVP y
 
 &nbsp; - Auditoría completa
 
-\- \*\*Motivos:\*\*
+- **Motivos:**
 
 &nbsp; - Estado del arte
 
@@ -294,17 +294,17 @@ Se adopta el siguiente \*\*stack tecnológico y de plataformas\*\* para el MVP y
 
 
 
-\### 2.9 Despliegue
+### 2.9 Despliegue
 
 
 
-\- \*\*Web:\*\* Vercel
+- **Web:** Vercel
 
-\- \*\*API + Workers:\*\* Render (o Railway como alternativa)
+- **API + Workers:** Render (o Railway como alternativa)
 
-\- \*\*Base de Datos + Auth:\*\* Supabase
+- **Base de Datos + Auth:** Supabase
 
-\- \*\*Redis:\*\* Upstash
+- **Redis:** Upstash
 
 
 
@@ -312,75 +312,75 @@ Se adopta el siguiente \*\*stack tecnológico y de plataformas\*\* para el MVP y
 
 
 
-\## 3. Alternativas Consideradas
+## 3. Alternativas Consideradas
 
 
 
-\### 3.1 Frontend
+### 3.1 Frontend
 
 
 
-\- \*\*React + Vite\*\*
+- **React + Vite**
 
 &nbsp; - ❌ Rechazado: requiere más configuración para SSR y routing avanzado.
 
-\- \*\*Angular\*\*
+- **Angular**
 
 &nbsp; - ❌ Rechazado: sobrecarga innecesaria para el alcance del MVP.
 
 
 
-\### 3.2 Backend
+### 3.2 Backend
 
 
 
-\- \*\*Fastify puro\*\*
+- **Fastify puro**
 
 &nbsp; - ❌ Rechazado: mayor esfuerzo para estructurar arquitectura limpia.
 
-\- \*\*Express\*\*
+- **Express**
 
 &nbsp; - ❌ Rechazado: falta de estructura y DI nativo.
 
 
 
-\### 3.3 Base de Datos
+### 3.3 Base de Datos
 
 
 
-\- \*\*InfluxDB\*\*
+- **InfluxDB**
 
 &nbsp; - ❌ Rechazado: menor flexibilidad relacional.
 
-\- \*\*MongoDB\*\*
+- **MongoDB**
 
 &nbsp; - ❌ Rechazado: pobre adecuación para time-series financieras.
 
 
 
-\### 3.4 Autenticación
+### 3.4 Autenticación
 
 
 
-\- \*\*Auth0 / Clerk\*\*
+- **Auth0 / Clerk**
 
 &nbsp; - ❌ Rechazado: dependencia externa adicional y mayor costo.
 
-\- \*\*Autenticación propia\*\*
+- **Autenticación propia**
 
 &nbsp; - ❌ Rechazado: riesgo de seguridad innecesario.
 
 
 
-\### 3.5 Infraestructura
+### 3.5 Infraestructura
 
 
 
-\- \*\*Kubernetes\*\*
+- **Kubernetes**
 
 &nbsp; - ❌ Rechazado: complejidad injustificada para el MVP.
 
-\- \*\*Microservicios completos\*\*
+- **Microservicios completos**
 
 &nbsp; - ❌ Rechazado: sobre–ingeniería académicamente penalizable.
 
@@ -390,35 +390,35 @@ Se adopta el siguiente \*\*stack tecnológico y de plataformas\*\* para el MVP y
 
 
 
-\## 4. Consecuencias
+## 4. Consecuencias
 
 
 
-\### Positivas
+### Positivas
 
 
 
-\- Arquitectura clara y defendible académicamente.
+- Arquitectura clara y defendible académicamente.
 
-\- Baja fricción entre desarrollo local y producción.
+- Baja fricción entre desarrollo local y producción.
 
-\- Seguridad profesional sin complejidad excesiva.
+- Seguridad profesional sin complejidad excesiva.
 
-\- Escalabilidad razonable para el alcance del MVP.
+- Escalabilidad razonable para el alcance del MVP.
 
-\- Costos controlados.
-
-
-
-\### Negativas
+- Costos controlados.
 
 
 
-\- Dependencia de proveedores gestionados (Supabase, Vercel).
+### Negativas
 
-\- Límite de escalabilidad extrema sin rediseño.
 
-\- Menor control fino de infraestructura que en soluciones self-hosted.
+
+- Dependencia de proveedores gestionados (Supabase, Vercel).
+
+- Límite de escalabilidad extrema sin rediseño.
+
+- Menor control fino de infraestructura que en soluciones self-hosted.
 
 
 
@@ -426,7 +426,7 @@ Se adopta el siguiente \*\*stack tecnológico y de plataformas\*\* para el MVP y
 
 
 
-\## 5. Riesgos y Mitigaciones
+## 5. Riesgos y Mitigaciones
 
 
 
@@ -448,15 +448,15 @@ Se adopta el siguiente \*\*stack tecnológico y de plataformas\*\* para el MVP y
 
 
 
-\## 6. Estado y Seguimiento
+## 6. Estado y Seguimiento
 
 
 
-\- Este ADR queda \*\*cerrado y aprobado\*\*.
+- Este ADR queda **cerrado y aprobado**.
 
-\- Cualquier cambio posterior deberá registrarse en un nuevo ADR.
+- Cualquier cambio posterior deberá registrarse en un nuevo ADR.
 
-\- Este documento es vinculante para el diseño e implementación del sistema.
+- Este documento es vinculante para el diseño e implementación del sistema.
 
 
 

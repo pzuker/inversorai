@@ -1,14 +1,14 @@
-\# ADR-0003 — Persistencia y Modelo de Datos Time-Series
+# ADR-0003 — Persistencia y Modelo de Datos Time-Series
 
 
 
-\*\*Estado:\*\* Aprobado  
+**Estado:** Aprobado  
 
-\*\*Fecha:\*\* 2025-01-24  
+**Fecha:** 2025-01-24  
 
-\*\*Decisores:\*\* Equipo InversorAI  
+**Decisores:** Equipo InversorAI  
 
-\*\*Contexto:\*\* Trabajo Final de Máster – Desarrollo de Sistemas con IA  
+**Contexto:** Trabajo Final de Máster – Desarrollo de Sistemas con IA  
 
 
 
@@ -16,21 +16,21 @@
 
 
 
-\## 1. Contexto
+## 1. Contexto
 
 
 
-El sistema \*\*InversorAI\*\* procesa y analiza grandes volúmenes de datos financieros con fuerte componente temporal, incluyendo:
+El sistema **InversorAI** procesa y analiza grandes volúmenes de datos financieros con fuerte componente temporal, incluyendo:
 
 
 
-\- Precios históricos de mercado (OHLCV).
+- Precios históricos de mercado (OHLCV).
 
-\- Indicadores técnicos calculados sobre ventanas temporales.
+- Indicadores técnicos calculados sobre ventanas temporales.
 
-\- Recomendaciones de inversión generadas por IA.
+- Recomendaciones de inversión generadas por IA.
 
-\- Eventos de auditoría y seguridad.
+- Eventos de auditoría y seguridad.
 
 
 
@@ -38,15 +38,15 @@ Los requisitos del sistema imponen que la persistencia:
 
 
 
-\- Soporte \*\*series temporales de alta cardinalidad\*\*.
+- Soporte **series temporales de alta cardinalidad**.
 
-\- Permita \*\*consultas eficientes por rango de fechas\*\*.
+- Permita **consultas eficientes por rango de fechas**.
 
-\- Mantenga \*\*integridad histórica\*\* (no sobrescritura silenciosa).
+- Mantenga **integridad histórica** (no sobrescritura silenciosa).
 
-\- Sea compatible con \*\*auditoría, trazabilidad y cumplimiento\*\*.
+- Sea compatible con **auditoría, trazabilidad y cumplimiento**.
 
-\- Se integre de forma natural con la arquitectura Clean/Hexagonal definida.
+- Se integre de forma natural con la arquitectura Clean/Hexagonal definida.
 
 
 
@@ -54,51 +54,11 @@ Adicionalmente, el contexto académico del TFM exige:
 
 
 
-\- Uso de tecnologías estándar y defendibles.
+- Uso de tecnologías estándar y defendibles.
 
-\- Justificación explícita del modelo de datos.
+- Justificación explícita del modelo de datos.
 
-\- Evitar soluciones experimentales o excesivamente complejas.
-
-
-
----
-
-
-
-\## 2. Requisitos de Persistencia
-
-
-
-\### 2.1 Requisitos Funcionales
-
-
-
-\- Almacenar datos OHLCV por activo y resolución temporal.
-
-\- Almacenar indicadores técnicos derivados de datos de mercado.
-
-\- Almacenar recomendaciones de inversión con inputs asociados.
-
-\- Almacenar usuarios, roles y preferencias.
-
-\- Almacenar eventos de auditoría y seguridad.
-
-
-
-\### 2.2 Requisitos No Funcionales
-
-
-
-\- Escalabilidad para miles de activos y años de histórico.
-
-\- Consultas por rango temporal con latencia predecible.
-
-\- Integridad referencial entre activos, datos, indicadores y recomendaciones.
-
-\- Soporte para retención de datos y archivado.
-
-\- Compatibilidad con despliegue gestionado en la nube.
+- Evitar soluciones experimentales o excesivamente complejas.
 
 
 
@@ -106,39 +66,79 @@ Adicionalmente, el contexto académico del TFM exige:
 
 
 
-\## 3. Decisión
+## 2. Requisitos de Persistencia
 
 
 
-Se adopta \*\*PostgreSQL\*\* como base de datos principal del sistema, con un \*\*modelo híbrido relacional + time-series\*\*, utilizando \*\*TimescaleDB\*\* cuando esté disponible.
+### 2.1 Requisitos Funcionales
 
 
 
-\### 3.1 Motor de Base de Datos
+- Almacenar datos OHLCV por activo y resolución temporal.
+
+- Almacenar indicadores técnicos derivados de datos de mercado.
+
+- Almacenar recomendaciones de inversión con inputs asociados.
+
+- Almacenar usuarios, roles y preferencias.
+
+- Almacenar eventos de auditoría y seguridad.
 
 
 
-\- \*\*Motor:\*\* PostgreSQL 17+
-
-\- \*\*Proveedor:\*\* Supabase
-
-\- \*\*Extensión opcional:\*\* TimescaleDB
+### 2.2 Requisitos No Funcionales
 
 
 
-PostgreSQL se utiliza como \*\*única fuente de verdad\*\* para:
+- Escalabilidad para miles de activos y años de histórico.
+
+- Consultas por rango temporal con latencia predecible.
+
+- Integridad referencial entre activos, datos, indicadores y recomendaciones.
+
+- Soporte para retención de datos y archivado.
+
+- Compatibilidad con despliegue gestionado en la nube.
 
 
 
-\- Datos de mercado.
+---
 
-\- Indicadores.
 
-\- Recomendaciones IA.
 
-\- Usuarios y seguridad.
+## 3. Decisión
 
-\- Auditoría.
+
+
+Se adopta **PostgreSQL** como base de datos principal del sistema, con un **modelo híbrido relacional + time-series**, utilizando **TimescaleDB** cuando esté disponible.
+
+
+
+### 3.1 Motor de Base de Datos
+
+
+
+- **Motor:** PostgreSQL 17+
+
+- **Proveedor:** Supabase
+
+- **Extensión opcional:** TimescaleDB
+
+
+
+PostgreSQL se utiliza como **única fuente de verdad** para:
+
+
+
+- Datos de mercado.
+
+- Indicadores.
+
+- Recomendaciones IA.
+
+- Usuarios y seguridad.
+
+- Auditoría.
 
 
 
@@ -150,11 +150,11 @@ No se introducen bases de datos adicionales en el MVP.
 
 
 
-\## 4. Modelo de Datos Conceptual
+## 4. Modelo de Datos Conceptual
 
 
 
-\### 4.1 Entidad: Asset
+### 4.1 Entidad: Asset
 
 
 
@@ -164,17 +164,17 @@ Representa un instrumento financiero.
 
 Campos conceptuales:
 
-\- `id`
+- `id`
 
-\- `symbol`
+- `symbol`
 
-\- `type` (STOCK | CRYPTO | FX)
+- `type` (STOCK | CRYPTO | FX)
 
-\- `currency`
+- `currency`
 
-\- `exchange`
+- `exchange`
 
-\- `is\_active`
+- `is_active`
 
 
 
@@ -182,7 +182,7 @@ Campos conceptuales:
 
 
 
-\### 4.2 Entidad: MarketDataPoint (Time-Series)
+### 4.2 Entidad: MarketDataPoint (Time-Series)
 
 
 
@@ -192,31 +192,31 @@ Representa un punto OHLCV en el tiempo.
 
 Campos conceptuales:
 
-\- `asset\_id`
+- `asset_id`
 
-\- `timestamp` (UTC)
+- `timestamp` (UTC)
 
-\- `open`
+- `open`
 
-\- `high`
+- `high`
 
-\- `low`
+- `low`
 
-\- `close`
+- `close`
 
-\- `volume`
+- `volume`
 
-\- `resolution`
+- `resolution`
 
-\- `is\_interpolated`
+- `is_interpolated`
 
-\- `source`
+- `source`
 
 
 
 Claves:
 
-\- Clave compuesta (`asset\_id`, `timestamp`, `resolution`)
+- Clave compuesta (`asset_id`, `timestamp`, `resolution`)
 
 
 
@@ -224,7 +224,7 @@ Claves:
 
 
 
-\### 4.3 Entidad: IndicatorSet
+### 4.3 Entidad: IndicatorSet
 
 
 
@@ -234,23 +234,23 @@ Representa indicadores calculados sobre datos de mercado.
 
 Campos conceptuales:
 
-\- `asset\_id`
+- `asset_id`
 
-\- `timestamp`
+- `timestamp`
 
-\- `resolution`
+- `resolution`
 
-\- `rsi`
+- `rsi`
 
-\- `macd`
+- `macd`
 
-\- `macd\_signal`
+- `macd_signal`
 
-\- `volatility`
+- `volatility`
 
-\- `sharpe\_ratio`
+- `sharpe_ratio`
 
-\- `calculation\_version`
+- `calculation_version`
 
 
 
@@ -258,7 +258,7 @@ Campos conceptuales:
 
 
 
-\### 4.4 Entidad: Recommendation
+### 4.4 Entidad: Recommendation
 
 
 
@@ -268,23 +268,23 @@ Representa una recomendación generada por IA.
 
 Campos conceptuales:
 
-\- `id`
+- `id`
 
-\- `asset\_id`
+- `asset_id`
 
-\- `action` (BUY | HOLD | SELL)
+- `action` (BUY | HOLD | SELL)
 
-\- `confidence\_score`
+- `confidence_score`
 
-\- `model\_name`
+- `model_name`
 
-\- `model\_version`
+- `model_version`
 
-\- `prompt\_version`
+- `prompt_version`
 
-\- `input\_snapshot\_hash`
+- `input_snapshot_hash`
 
-\- `created\_at`
+- `created_at`
 
 
 
@@ -292,7 +292,7 @@ Campos conceptuales:
 
 
 
-\### 4.5 Entidad: RecommendationAudit
+### 4.5 Entidad: RecommendationAudit
 
 
 
@@ -302,15 +302,15 @@ Almacena la trazabilidad completa de una recomendación IA.
 
 Campos conceptuales:
 
-\- `recommendation\_id`
+- `recommendation_id`
 
-\- `input\_snapshot`
+- `input_snapshot`
 
-\- `model\_output\_raw`
+- `model_output_raw`
 
-\- `model\_output\_normalized`
+- `model_output_normalized`
 
-\- `created\_at`
+- `created_at`
 
 
 
@@ -318,7 +318,7 @@ Campos conceptuales:
 
 
 
-\### 4.6 Entidad: AuditLog
+### 4.6 Entidad: AuditLog
 
 
 
@@ -328,19 +328,19 @@ Eventos de seguridad y auditoría.
 
 Campos conceptuales:
 
-\- `id`
+- `id`
 
-\- `event\_type`
+- `event_type`
 
-\- `actor\_id`
+- `actor_id`
 
-\- `timestamp`
+- `timestamp`
 
-\- `ip\_address`
+- `ip_address`
 
-\- `user\_agent`
+- `user_agent`
 
-\- `details`
+- `details`
 
 
 
@@ -348,43 +348,43 @@ Campos conceptuales:
 
 
 
-\## 5. Estrategia Time-Series
+## 5. Estrategia Time-Series
 
 
 
-\### 5.1 Particionado y Escalabilidad
+### 5.1 Particionado y Escalabilidad
 
 
 
-\- Particionado por:
+- Particionado por:
 
-&nbsp; - `asset\_id`
+&nbsp; - `asset_id`
 
 &nbsp; - `timestamp`
 
-\- Uso de hypertables (TimescaleDB) si está disponible.
+- Uso de hypertables (TimescaleDB) si está disponible.
 
-\- En ausencia de TimescaleDB:
+- En ausencia de TimescaleDB:
 
 &nbsp; - Particionado nativo por rango temporal.
 
 
 
-\### 5.2 Retención de Datos
+### 5.2 Retención de Datos
 
 
 
-\- Datos de mercado:
+- Datos de mercado:
 
 &nbsp; - Alta resolución: retención configurable.
 
 &nbsp; - Resolución diaria: retención completa.
 
-\- Auditoría:
+- Auditoría:
 
 &nbsp; - Retención mínima: 1 año.
 
-\- Recomendaciones:
+- Recomendaciones:
 
 &nbsp; - Retención completa (no se eliminan).
 
@@ -394,29 +394,29 @@ Campos conceptuales:
 
 
 
-\## 6. Acceso a Datos y Arquitectura
+## 6. Acceso a Datos y Arquitectura
 
 
 
-\### 6.1 Puertos de Persistencia
+### 6.1 Puertos de Persistencia
 
 
 
-El acceso a la base de datos se realiza exclusivamente mediante \*\*puertos de repositorio\*\*, por ejemplo:
+El acceso a la base de datos se realiza exclusivamente mediante **puertos de repositorio**, por ejemplo:
 
 
 
-\- `MarketDataRepositoryPort`
+- `MarketDataRepositoryPort`
 
-\- `IndicatorRepositoryPort`
+- `IndicatorRepositoryPort`
 
-\- `RecommendationRepositoryPort`
+- `RecommendationRepositoryPort`
 
-\- `AuditLogRepositoryPort`
+- `AuditLogRepositoryPort`
 
 
 
-El dominio \*\*no conoce\*\* SQL, ORM ni detalles de almacenamiento.
+El dominio **no conoce** SQL, ORM ni detalles de almacenamiento.
 
 
 
@@ -424,7 +424,7 @@ El dominio \*\*no conoce\*\* SQL, ORM ni detalles de almacenamiento.
 
 
 
-\### 6.2 Implementaciones
+### 6.2 Implementaciones
 
 
 
@@ -432,43 +432,11 @@ Las implementaciones concretas:
 
 
 
-\- Viven en la capa de infraestructura.
+- Viven en la capa de infraestructura.
 
-\- Utilizan SQL/ORM de forma explícita.
+- Utilizan SQL/ORM de forma explícita.
 
-\- Aplican validaciones y conversiones necesarias.
-
-
-
----
-
-
-
-\## 7. Alternativas Consideradas
-
-
-
-\### 7.1 Bases de Datos Especializadas Time-Series (InfluxDB)
-
-
-
-\*\*Ventajas\*\*:
-
-\- Alto rendimiento para métricas puras.
-
-
-
-\*\*Desventajas\*\*:
-
-\- Modelo no relacional.
-
-\- Complejidad adicional.
-
-\- Dificultad para auditoría y joins.
-
-
-
-\*\*Decisión\*\*: ❌ Rechazado.
+- Aplican validaciones y conversiones necesarias.
 
 
 
@@ -476,57 +444,31 @@ Las implementaciones concretas:
 
 
 
-\### 7.2 Bases NoSQL (MongoDB)
+## 7. Alternativas Consideradas
 
 
 
-\*\*Ventajas\*\*:
-
-\- Flexibilidad de esquema.
+### 7.1 Bases de Datos Especializadas Time-Series (InfluxDB)
 
 
 
-\*\*Desventajas\*\*:
+**Ventajas**:
 
-\- Inadecuada para queries financieras precisas.
-
-\- Consistencia eventual no deseada.
+- Alto rendimiento para métricas puras.
 
 
 
-\*\*Decisión\*\*: ❌ Rechazado.
+**Desventajas**:
+
+- Modelo no relacional.
+
+- Complejidad adicional.
+
+- Dificultad para auditoría y joins.
 
 
 
----
-
-
-
-\## 8. Consecuencias
-
-
-
-\### Positivas
-
-
-
-\- Modelo de datos consistente y auditable.
-
-\- Unificación de persistencia.
-
-\- Consultas complejas posibles (joins, agregaciones).
-
-\- Facilidad de backup y recuperación.
-
-
-
-\### Negativas
-
-
-
-\- Escalabilidad extrema limitada sin tuning.
-
-\- Dependencia de SQL para consultas avanzadas.
+**Decisión**: ❌ Rechazado.
 
 
 
@@ -534,7 +476,65 @@ Las implementaciones concretas:
 
 
 
-\## 9. Riesgos y Mitigaciones
+### 7.2 Bases NoSQL (MongoDB)
+
+
+
+**Ventajas**:
+
+- Flexibilidad de esquema.
+
+
+
+**Desventajas**:
+
+- Inadecuada para queries financieras precisas.
+
+- Consistencia eventual no deseada.
+
+
+
+**Decisión**: ❌ Rechazado.
+
+
+
+---
+
+
+
+## 8. Consecuencias
+
+
+
+### Positivas
+
+
+
+- Modelo de datos consistente y auditable.
+
+- Unificación de persistencia.
+
+- Consultas complejas posibles (joins, agregaciones).
+
+- Facilidad de backup y recuperación.
+
+
+
+### Negativas
+
+
+
+- Escalabilidad extrema limitada sin tuning.
+
+- Dependencia de SQL para consultas avanzadas.
+
+
+
+---
+
+
+
+## 9. Riesgos y Mitigaciones
 
 
 
@@ -556,15 +556,15 @@ Las implementaciones concretas:
 
 
 
-\## 10. Estado y Seguimiento
+## 10. Estado y Seguimiento
 
 
 
-\- Este ADR queda \*\*aprobado y cerrado\*\*.
+- Este ADR queda **aprobado y cerrado**.
 
-\- Cambios futuros en persistencia requerirán un nuevo ADR.
+- Cambios futuros en persistencia requerirán un nuevo ADR.
 
-\- El diseño es vinculante para la implementación del MVP.
+- El diseño es vinculante para la implementación del MVP.
 
 
 

@@ -36,6 +36,52 @@ Todos los precios e históricos provienen de **Yahoo Finance** y son **verificab
 
 ## 🏗️ Arquitectura
 
+### Diagrama de alto nivel (C4-lite)
+
+```mermaid
+flowchart TB
+  subgraph Client
+    U[Usuario (Profesor)]:::c
+    A[Admin]:::c
+  end
+
+  subgraph Frontend
+    W[Next.js Web App]:::b
+  end
+
+  subgraph Backend
+    API[API Node.js (Clean/Hexagonal)]:::b
+  end
+
+  subgraph Supabase
+    AUTH[Auth]:::s
+    DB[(PostgreSQL)]:::s
+  end
+
+  YF[Yahoo Finance]:::e
+  LLM[OpenAI]:::e
+
+  U --> W
+  A --> W
+
+  W -->|HTTPS + Bearer JWT| API
+  API -->|Verifica JWT (JWKS)| AUTH
+
+  API -->|Lecturas| DB
+  API -->|Escrituras (pipeline)| DB
+
+  API -->|Ingesta de mercado| YF
+  API -->|Insights explicables| LLM
+
+  classDef c fill:#111,stroke:#555,color:#fff;
+  classDef b fill:#222,stroke:#777,color:#fff;
+  classDef s fill:#0b2b2b,stroke:#3aa,color:#fff;
+  classDef e fill:#2b1a0b,stroke:#a63,color:#fff;
+```
+
+**Regla clave:** los providers externos (Yahoo/OpenAI) se usan **solo para ingesta/generación y escritura**; la UI siempre lee desde **PostgreSQL** como fuente de verdad.
+
+
 El sistema sigue una **Clean / Hexagonal Architecture**, separando claramente:
 
 - **Dominio**: entidades, reglas de negocio y casos de uso.

@@ -24,6 +24,34 @@ El objetivo es demostrar comprensión aplicada de:
 
 ## 2. Principios de Diseño
 
+## 2.1 Vista de Contenedores (C4-lite)
+
+El siguiente diagrama resume la arquitectura del MVP como **contenedores** y **dependencias**. Es intencionalmente simple: ayuda a entender *dónde vive cada responsabilidad* y *por qué no se leen datos directamente de proveedores externos*.
+
+```mermaid
+flowchart LR
+  Client[Cliente Web<br/>(USER / ADMIN)] -->|HTTPS| Web[Next.js App Router<br/>UI + Auth client]
+  Web -->|Bearer JWT| Api[API Node.js<br/>(Interfaces + Application + Domain)]
+  Api -->|Verify JWT (JWKS)| Auth[Supabase Auth]
+  Api -->|Read model| Db[(Supabase Postgres)]
+  Api -->|Write model (pipeline)| Db
+  Api -->|Market data provider| YF[Yahoo Finance]
+  Api -->|LLM provider| OpenAI[OpenAI]
+
+  %% Clean Architecture emphasis
+  subgraph Ports [Ports (Application Layer)]
+    P1[MarketDataProviderPort]
+    P2[AIInsightPort]
+    P3[Repositories (DB)]
+  end
+```
+
+Notas:
+- **Lecturas** (dashboard, gráficos, histórico) → siempre desde **DB**.
+- **Escrituras** → solo vía casos de uso (pipeline) y solo con providers reales en producción.
+- RBAC: el rol proviene de `app_metadata.inversorai_role` (JWT verificado por JWKS), nunca de headers del cliente.
+
+
 - El dominio es independiente de frameworks, DB y APIs externas.
 - Toda funcionalidad relevante se expresa como un caso de uso explícito.
 - Dependencias siempre hacia el dominio (Inversión de Dependencias).

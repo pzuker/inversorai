@@ -8,7 +8,7 @@
 
 ## 1. Objetivo del Sistema
 
-**InversorAI** es una plataforma fullstack de análisis de mercados financieros basada en inteligencia artificial, orientada a la **toma de decisiones de inversión informadas, explicables, auditables y monetizables**, para los siguientes tipos de activos:
+**InversorAI** es una plataforma fullstack de análisis de mercados financieros basada en inteligencia artificial, orientada a la **toma de decisiones de inversión informadas, explicables, auditables y defendibles**, para los siguientes tipos de activos:
 
 - **Acciones (STOCK)**
 - **Criptomonedas (CRYPTO)**
@@ -16,12 +16,13 @@
 
 El sistema permite:
 
-- Ingestar datos de mercado históricos y cuasi–reales de forma automatizada.
-- Calcular indicadores técnicos y métricas de riesgo/retorno verificables.
-- Generar **recomendaciones de inversión mediante IA**, con trazabilidad completa.
-- Optimizar portafolios bajo criterios financieros formales (Sharpe Ratio).
-- Exponer información a través de una **interfaz web profesional** y una **API segura**.
-- Habilitar un modelo de **monetización por suscripción**, con control estricto de identidad y permisos.
+- Ingestar **datos de mercado reales** desde Internet (Yahoo Finance) bajo demanda (ejecución controlada por ADMIN).
+- Persistir datos e indicadores en una base de datos (Supabase/PostgreSQL) para lecturas repetibles.
+- Calcular indicadores técnicos y métricas cuantitativas verificables.
+- Ejecutar análisis de tendencia sobre series temporales.
+- Generar **insights y recomendaciones de inversión** mediante IA, con output estructurado y explicable.
+- Exponer resultados en una **interfaz web profesional** y una **API segura**.
+
 
 ---
 
@@ -29,9 +30,9 @@ El sistema permite:
 
 | Actor | Descripción |
 |------|-------------|
-| **USER** | Usuario autenticado que accede a análisis, indicadores, recomendaciones y portafolios propios según su plan de suscripción. |
+| **USER** | Usuario autenticado que accede a análisis, indicadores, insights y recomendaciones basadas en datos reales. |
 | **ADMIN** | Administrador con control global del sistema: gestión de usuarios, roles, activos, configuración del sistema, auditoría y seguridad. |
-| **SISTEMA (Jobs Programados)** | Procesos automáticos de ingesta de datos, cálculo de indicadores y generación de recomendaciones. |
+| **SISTEMA (Pipeline)** | Orquestación de casos de uso: ingesta → indicadores → tendencias → IA → persistencia. En el MVP se ejecuta bajo demanda (ADMIN). |
 | **Identity Provider (IdP)** | Proveedor externo compatible con OIDC/OAuth2 responsable de la autenticación de usuarios. |
 
 > Nota: el sistema **no implementa autenticación local** en el MVP. Toda identidad se delega al Identity Provider externo.
@@ -51,14 +52,21 @@ El sistema permite:
   - Volatilidad
   - Sharpe Ratio
 - Motor de recomendaciones de inversión mediante IA **auditables y reproducibles**.
-- Optimización de portafolios por **maximización del Sharpe Ratio**.
 - Dashboard web responsive (desktop y tablet).
 - API REST autenticada y versionada.
-- Sistema de identidad y acceso (IAM):
-  - Autenticación OIDC/OAuth2
-  - Roles ADMIN y USER
-  - Autorización RBAC
-- Auditoría de eventos de seguridad y de decisiones generadas por IA.
+- API REST autenticada y versionada.
+- Sistema de identidad y acceso (IAM) basado en Supabase Auth:
+  - JWT `Authorization: Bearer <token>` verificado en backend mediante JWKS (ES256).
+  - Roles **ADMIN/USER** almacenados en `app_metadata.inversorai_role` (default: USER).
+  - Endpoints ADMIN protegidos por `requireAdmin`.
+  - Step-up auth para cambios de rol (token reciente, basado en `iat`).
+- Administración (MVP, vía API):
+  - Listado de usuarios.
+  - Asignación de rol ADMIN/USER (con step-up auth y protección del “último admin”).
+  - Envío de email de reset de contraseña usando Supabase.
+
+- Auditoría de decisiones de IA y trazabilidad de pipeline.
+
 
 ### 3.2 Fuera de Alcance (No-MVP)
 
@@ -68,7 +76,10 @@ El sistema permite:
 - Machine Learning predictivo entrenado en tiempo real.
 - Soporte multi-idioma.
 - Aplicaciones móviles nativas.
-- Notificaciones push o por correo electrónico.
+- Notificaciones push o por correo electrónico (más allá del reset de contraseña).
+- Monetización/suscripciones (fuera del alcance del MVP).
+- Optimización de portafolios (work-in-progress / línea futura).
+- Ejecución programada del pipeline por scheduler/colas (línea futura; el MVP es on-demand).
 
 ---
 

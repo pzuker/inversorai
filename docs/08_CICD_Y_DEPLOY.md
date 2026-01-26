@@ -1,452 +1,108 @@
-\# 08 — CI/CD y Despliegue a Producción
+# 08 — CI/CD y Despliegue a Producción
 
-
-
-\*\*Proyecto:\*\* InversorAI  
-
-\*\*Fecha:\*\* 2025-01-24  
-
-\*\*Contexto:\*\* Trabajo Final de Máster – Desarrollo de Sistemas con IA  
-
-
+**Proyecto:** InversorAI  
+**Fecha:** 2026-01-25  
+**Contexto:** Trabajo Final de Máster – Desarrollo de Sistemas con IA  
 
 ---
 
+## 1. Propósito del Documento
 
+Este documento describe la estrategia de despliegue del MVP y las decisiones que garantizan:
 
-\## 1. Propósito del Documento
+- reproducibilidad (misma versión en local y en prod),
+- seguridad de credenciales,
+- control de roles (ADMIN/USER) sin hardcode,
+- y calidad mínima automatizada (tests relevantes).
 
-
-
-Este documento describe la estrategia de \*\*Integración Continua (CI)\*\* y \*\*Despliegue Continuo (CD)\*\* del sistema InversorAI.
-
-
-
-El objetivo es demostrar que el sistema:
-
-
-
-\- Puede pasar de desarrollo local a producción real.
-
-\- Mantiene calidad, seguridad y reproducibilidad.
-
-\- Evita despliegues manuales frágiles.
-
-\- Es consistente con prácticas profesionales actuales.
-
-
-
-Este documento \*\*no contiene scripts ni YAML\*\*, sino las \*\*decisiones y flujos\*\* que gobiernan el pipeline.
-
-
+No incluye YAML específico (GitHub Actions/Vercel), pero sí el **flujo** y los **controles**.
 
 ---
 
+## 2. Estrategia de despliegue (MVP)
 
-
-\## 2. Objetivos del Pipeline CI/CD
-
-
-
-La estrategia de CI/CD debe:
-
-
-
-\- Automatizar validaciones de calidad.
-
-\- Prevenir regresiones funcionales.
-
-\- Reducir errores humanos en despliegues.
-
-\- Garantizar trazabilidad entre código y producción.
-
-\- Facilitar rollback ante fallos.
-
-\- Mantener bajo el costo operativo del MVP.
-
-
+- Frontend: desplegable en Vercel (Next.js App Router).
+- Backend: servicio Node/Express desplegable en entorno server (o serverless compatible).
+- Base de datos e IAM: Supabase (PostgreSQL + Auth).
 
 ---
 
+## 3. Variables y secretos
 
+### 3.1 Frontend
 
-\## 3. Principios de Diseño
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
+> Solo claves públicas (anon). Nunca `service_role` en frontend.
 
+### 3.2 Backend
 
-El pipeline se diseña siguiendo estos principios:
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY` (secreto, solo servidor/CI)
+- `OPENAI_API_KEY`
+- `MARKET_DATA_PROVIDER=REAL`
 
-
-
-\- Automatización por defecto.
-
-\- Fallar rápido y de forma visible.
-
-\- Separación entre build, test y deploy.
-
-\- Paridad entre entornos (local, staging, producción).
-
-\- Infraestructura como configuración declarativa.
-
-\- Simplicidad antes que sofisticación innecesaria.
-
-
+Opcionales (operación ADMIN):
+- `INITIAL_ADMIN_EMAIL`
+- `INITIAL_ADMIN_INVITE_REDIRECT_TO`
+- `ADMIN_STEP_UP_MAX_AGE_SECONDS`
+- `PASSWORD_RESET_REDIRECT_TO`
 
 ---
 
+## 4. Bootstrap de seguridad: primer ADMIN (idempotente)
 
+Problema: un MVP real no puede depender de “admin hardcodeado”.
 
-\## 4. Control de Versiones
+Solución: un script de bootstrap crea (o promueve) el **primer ADMIN** mediante invite:
 
+```bash
+cd services/api
+npm run bootstrap:admin
+```
 
+Comportamiento:
 
-\### 4.1 Repositorio
+- Si ya existe un ADMIN → **noop** (idempotente).
+- Si no existe:
+  - Si el usuario existe → lo promueve a ADMIN (merge de `app_metadata`).
+  - Si no existe → lo invita por email y luego asigna rol ADMIN.
 
-
-
-\- Repositorio Git único (monorepo).
-
-\- Ramas principales:
-
-&nbsp; - `main`: estado estable y desplegable.
-
-&nbsp; - `feature/\*`: desarrollo de funcionalidades.
-
-
-
----
-
-
-
-\### 4.2 Estrategia de Commits
-
-
-
-\- Commits pequeños y atómicos.
-
-\- Mensajes descriptivos.
-
-\- Cambios estructurales acompañados de documentación.
-
-
+Esto permite que producción tenga un “punto de arranque” controlado y auditable.
 
 ---
 
+## 5. Control de calidad (CI)
 
+Criterio pragmático para MVP:
 
-\## 5. Integración Continua (CI)
+- Backend (`services/api`):
+  - `npm test` (unit + integración con mocks)
+- Frontend (`apps/web`):
+  - `npm run build` (type-check + build)
 
-
-
-\### 5.1 Disparadores del Pipeline
-
-
-
-El pipeline de CI se ejecuta automáticamente en:
-
-
-
-\- Pull Requests hacia `main`.
-
-\- Commits directos a `main`.
-
-
+> No se ejecutan suites completas si el cambio es puramente documental o de UI menor. Se aplica criterio.
 
 ---
 
+## 6. Verificación post-deploy (smoke)
 
+Checklist mínima tras deploy:
 
-\### 5.2 Etapas del Pipeline CI
-
-
-
-El pipeline incluye, como mínimo, las siguientes etapas:
-
-
-
-1\. \*\*Instalación de dependencias\*\*
-
-2\. \*\*Análisis estático\*\*
-
-&nbsp;  - Linting
-
-&nbsp;  - Type checking
-
-3\. \*\*Ejecución de tests\*\*
-
-&nbsp;  - Tests unitarios
-
-&nbsp;  - Tests de casos de uso
-
-&nbsp;  - Tests de integración (cuando aplique)
-
-4\. \*\*Validación de build\*\*
-
-&nbsp;  - Compilación de frontend y backend
-
-5\. \*\*Chequeos de seguridad básicos\*\*
-
-&nbsp;  - Dependencias vulnerables
-
-&nbsp;  - Configuración insegura conocida
-
-
-
-El pipeline \*\*bloquea el merge\*\* si alguna etapa falla.
-
-
+- Login/registro en Supabase funciona en el dominio final (Site URL + Redirect allowlist).
+- Endpoints de lectura (`/market-data`, `/insights/latest`, `/recommendations/latest`) responden con Bearer token.
+- Endpoint admin pipeline responde:
+  - 403 para USER
+  - 200 para ADMIN
+- Los endpoints de administración de usuarios requieren ADMIN y step-up para cambios de rol.
 
 ---
 
+## 7. Rollback
 
+Estrategia MVP:
 
-\## 6. Gestión de Secretos y Configuración
-
-
-
-\- Ningún secreto se versiona en el repositorio.
-
-\- Las configuraciones sensibles se manejan mediante:
-
-&nbsp; - Variables de entorno.
-
-&nbsp; - Secret managers de la plataforma.
-
-\- Los valores por entorno están claramente separados:
-
-&nbsp; - desarrollo
-
-&nbsp; - staging
-
-&nbsp; - producción
-
-
-
----
-
-
-
-\## 7. Despliegue Continuo (CD)
-
-
-
-\### 7.1 Estrategia de Despliegue
-
-
-
-Se adopta una estrategia de despliegue \*\*automatizada y gradual\*\*.
-
-
-
-\- El despliegue se ejecuta solo desde `main`.
-
-\- Cada despliegue corresponde a un commit identificable.
-
-\- No se realizan despliegues manuales en producción.
-
-
-
----
-
-
-
-\### 7.2 Componentes Desplegados
-
-
-
-El sistema se despliega en los siguientes componentes:
-
-
-
-\- \*\*Frontend Web\*\*
-
-\- \*\*API Backend\*\*
-
-\- \*\*Workers asíncronos\*\*
-
-\- \*\*Infraestructura gestionada\*\* (DB, Auth, Redis)
-
-
-
-Cada componente puede desplegarse de forma independiente.
-
-
-
----
-
-
-
-\## 8. Entornos
-
-
-
-\### 8.1 Desarrollo Local
-
-
-
-\- Entorno reproducible mediante configuración local.
-
-\- Uso de servicios emulados o cuentas de desarrollo.
-
-\- Logs verbosos habilitados.
-
-
-
----
-
-
-
-\### 8.2 Producción
-
-
-
-\- Configuración segura por defecto.
-
-\- Logs estructurados.
-
-\- Métricas habilitadas.
-
-\- Acceso restringido.
-
-
-
-No se permite testear directamente en producción.
-
-
-
----
-
-
-
-\## 9. Estrategia de Rollback
-
-
-
-Ante un fallo en producción:
-
-
-
-\- Se identifica el commit desplegado.
-
-\- Se revierte al último estado estable.
-
-\- Se registra el incidente.
-
-\- Se analiza la causa raíz.
-
-
-
-El rollback es \*\*rápido y automatizable\*\*.
-
-
-
----
-
-
-
-\## 10. Observabilidad Post-Deploy
-
-
-
-Luego de cada despliegue se monitorean:
-
-
-
-\- Errores de aplicación.
-
-\- Latencia.
-
-\- Consumo de recursos.
-
-\- Fallos en jobs asíncronos.
-
-
-
-Esto permite detectar problemas tempranamente.
-
-
-
----
-
-
-
-\## 11. Seguridad en CI/CD
-
-
-
-El pipeline considera seguridad como parte integral:
-
-
-
-\- Validación de dependencias vulnerables.
-
-\- Protección de secretos.
-
-\- Acceso mínimo necesario a pipelines.
-
-\- Separación de permisos por entorno.
-
-
-
----
-
-
-
-\## 12. Alternativas Consideradas
-
-
-
-\### 12.1 Despliegue Manual
-
-
-
-Rechazado por:
-
-\- alto riesgo humano,
-
-\- baja reproducibilidad,
-
-\- dificultad de rollback.
-
-
-
----
-
-
-
-\### 12.2 Infraestructura Compleja (Kubernetes)
-
-
-
-Rechazada para el MVP por:
-
-\- complejidad excesiva,
-
-\- sobrecarga operativa,
-
-\- bajo valor académico adicional.
-
-
-
----
-
-
-
-\## 13. Consideraciones Finales
-
-
-
-\- El pipeline CI/CD es parte del diseño del sistema.
-
-\- Un sistema sin despliegue reproducible no está completo.
-
-\- Esta estrategia es suficiente para el MVP y el TFM.
-
-\- El documento es vinculante para la implementación.
-
-
-
----
-
-
+- Revertir a commit anterior (git) + redeploy.
+- Mantener migraciones DB compatibles hacia atrás (o documentar el rollback si hay cambios destructivos).
 

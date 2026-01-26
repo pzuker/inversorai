@@ -1,38 +1,16 @@
-\# 09 — Checklist Final de Entrega del TFM
+# 09 — Checklist Final de Entrega del TFM
 
 
 
-\*\*Proyecto:\*\* InversorAI  
+**Proyecto:** InversorAI  
 
-\*\*Contexto:\*\* Trabajo Final de Máster – Desarrollo de Sistemas con IA  
-
-
-
-Este documento sirve como \*\*verificación final\*\* antes de la entrega del Trabajo Final de Máster.  
-
-Su objetivo es asegurar que el proyecto cumple \*\*todos los requisitos técnicos, académicos y formales\*\*, y que es defendible ante el tribunal.
+**Contexto:** Trabajo Final de Máster – Desarrollo de Sistemas con IA  
 
 
 
----
+Este documento sirve como **verificación final** antes de la entrega del Trabajo Final de Máster.  
 
-
-
-\## 1. Requisitos Formales del TFM
-
-
-
-\- \[ ] El proyecto tiene un objetivo claro y bien definido.
-
-\- \[ ] El problema abordado está justificado técnica y académicamente.
-
-\- \[ ] El alcance está explícitamente delimitado.
-
-\- \[ ] Se describen limitaciones y trabajo futuro.
-
-\- \[ ] El lenguaje utilizado es técnico y profesional.
-
-\- \[ ] No se incluyen afirmaciones no justificadas.
+Su objetivo es asegurar que el proyecto cumple **todos los requisitos técnicos, académicos y formales**, y que es defendible ante el tribunal.
 
 
 
@@ -40,37 +18,21 @@ Su objetivo es asegurar que el proyecto cumple \*\*todos los requisitos técnico
 
 
 
-\## 2. Documentación del Sistema
+## 1. Requisitos Formales del TFM
 
 
 
-\- \[ ] Existe un README.md claro y orientado al tribunal.
+- [ ] El proyecto tiene un objetivo claro y bien definido.
 
-\- \[ ] El README explica qué es el sistema y qué no es.
+- [ ] El problema abordado está justificado técnica y académicamente.
 
-\- \[ ] El README incluye instrucciones de instalación y ejecución.
+- [ ] El alcance está explícitamente delimitado.
 
-\- \[ ] El README describe el uso de IA y sus limitaciones.
+- [ ] Se describen limitaciones y trabajo futuro.
 
-\- \[ ] El README referencia correctamente la documentación adicional.
+- [ ] El lenguaje utilizado es técnico y profesional.
 
-
-
----
-
-
-
-\## 3. Requisitos Funcionales y No Funcionales
-
-
-
-\- \[ ] Los requisitos funcionales están documentados.
-
-\- \[ ] Los requisitos no funcionales están documentados.
-
-\- \[ ] Los requisitos son coherentes entre sí.
-
-\- \[ ] No existen requisitos implícitos sin documentar.
+- [ ] No se incluyen afirmaciones no justificadas.
 
 
 
@@ -78,37 +40,19 @@ Su objetivo es asegurar que el proyecto cumple \*\*todos los requisitos técnico
 
 
 
-\## 4. Arquitectura y Diseño
+## 2. Documentación del Sistema
 
 
 
-\- \[ ] La arquitectura general está claramente explicada.
+- [ ] Existe un README.md claro y orientado al tribunal.
 
-\- \[ ] Se aplican principios de Clean / Hexagonal Architecture.
+- [ ] El README explica qué es el sistema y qué no es.
 
-\- \[ ] Las responsabilidades están correctamente separadas.
+- [ ] El README incluye instrucciones de instalación y ejecución.
 
-\- \[ ] El dominio no depende de frameworks ni infraestructura.
+- [ ] El README describe el uso de IA y sus limitaciones.
 
-\- \[ ] Las decisiones arquitectónicas están documentadas mediante ADRs.
-
-
-
----
-
-
-
-\## 5. Decisiones Arquitectónicas (ADR)
-
-
-
-\- \[ ] Cada decisión relevante tiene un ADR asociado.
-
-\- \[ ] Los ADRs incluyen contexto, decisión y consecuencias.
-
-\- \[ ] No hay ADRs incompletos o ambiguos.
-
-\- \[ ] Las decisiones son coherentes entre sí.
+- [ ] El README referencia correctamente la documentación adicional.
 
 
 
@@ -116,39 +60,17 @@ Su objetivo es asegurar que el proyecto cumple \*\*todos los requisitos técnico
 
 
 
-\## 6. Dominio y Casos de Uso
+## 3. Requisitos Funcionales y No Funcionales
 
 
 
-\- \[ ] El modelo de dominio está definido.
+- [ ] Los requisitos funcionales están documentados.
 
-\- \[ ] Los casos de uso están explícitamente documentados.
+- [ ] Los requisitos no funcionales están documentados.
 
-\- \[ ] No existen endpoints sin un caso de uso asociado.
+- [ ] Los requisitos son coherentes entre sí.
 
-\- \[ ] Los flujos principales del sistema están descritos.
-
-\- \[ ] La IA está integrada como parte de un caso de uso, no como lógica central.
-
-
-
----
-
-
-
-\## 7. Pipeline de Datos y Asincronía
-
-
-
-\- \[ ] El pipeline de datos de mercado está documentado end-to-end.
-
-\- \[ ] Se explica la normalización y validación de datos.
-
-\- \[ ] Se describen estrategias de retries e idempotencia.
-
-\- \[ ] El procesamiento asíncrono está justificado.
-
-\- \[ ] Los fallos parciales están contemplados.
+- [ ] No existen requisitos implícitos sin documentar.
 
 
 
@@ -156,39 +78,19 @@ Su objetivo es asegurar que el proyecto cumple \*\*todos los requisitos técnico
 
 
 
-\## 8. Uso de Inteligencia Artificial
+## 4. Arquitectura y Diseño
 
 
 
-\- \[ ] El rol de la IA está claramente delimitado.
+- [ ] La arquitectura general está claramente explicada.
 
-\- \[ ] Los prompts están versionados conceptualmente.
+- [ ] Se aplican principios de Clean / Hexagonal Architecture.
 
-\- \[ ] Los inputs y outputs están controlados.
+- [ ] Las responsabilidades están correctamente separadas.
 
-\- \[ ] Existe trazabilidad completa de las recomendaciones.
+- [ ] El dominio no depende de frameworks ni infraestructura.
 
-\- \[ ] Se explicitan los riesgos y mitigaciones de la IA.
-
-
-
----
-
-
-
-\## 9. Seguridad
-
-
-
-\- \[ ] La autenticación está correctamente explicada.
-
-\- \[ ] La autorización distingue roles ADMIN y USER.
-
-\- \[ ] Existe aislamiento de datos por usuario.
-
-\- \[ ] Se contemplan eventos de auditoría.
-
-\- \[ ] El diseño está alineado con OWASP Top 10.
+- [ ] Las decisiones arquitectónicas están documentadas mediante ADRs.
 
 
 
@@ -196,39 +98,17 @@ Su objetivo es asegurar que el proyecto cumple \*\*todos los requisitos técnico
 
 
 
-\## 10. Testing y Calidad
+## 5. Decisiones Arquitectónicas (ADR)
 
 
 
-\- \[ ] Existe una estrategia de testing definida.
+- [ ] Cada decisión relevante tiene un ADR asociado.
 
-\- \[ ] Se describen distintos niveles de testing.
+- [ ] Los ADRs incluyen contexto, decisión y consecuencias.
 
-\- \[ ] El dominio y los casos de uso están testeados conceptualmente.
+- [ ] No hay ADRs incompletos o ambiguos.
 
-\- \[ ] El uso de IA tiene una estrategia de testing específica.
-
-\- \[ ] La calidad es tratada como un atributo transversal.
-
-
-
----
-
-
-
-\## 11. CI/CD y Producción
-
-
-
-\- \[ ] Existe una estrategia clara de CI.
-
-\- \[ ] El pipeline bloquea código defectuoso.
-
-\- \[ ] El despliegue a producción está documentado.
-
-\- \[ ] La gestión de secretos está contemplada.
-
-\- \[ ] Existe estrategia de rollback.
+- [ ] Las decisiones son coherentes entre sí.
 
 
 
@@ -236,35 +116,19 @@ Su objetivo es asegurar que el proyecto cumple \*\*todos los requisitos técnico
 
 
 
-\## 12. Evaluabilidad del Proyecto
+## 6. Dominio y Casos de Uso
 
 
 
-\- \[ ] El proyecto puede ejecutarse en modo demo.
+- [ ] El modelo de dominio está definido.
 
-\- \[ ] No requiere credenciales reales obligatorias.
+- [ ] Los casos de uso están explícitamente documentados.
 
-\- \[ ] Los flujos principales pueden demostrarse.
+- [ ] No existen endpoints sin un caso de uso asociado.
 
-\- \[ ] La arquitectura puede explicarse sin ejecutar código.
+- [ ] Los flujos principales del sistema están descritos.
 
-
-
----
-
-
-
-\## 13. Coherencia Global
-
-
-
-\- \[ ] No hay contradicciones entre documentos.
-
-\- \[ ] Los conceptos se usan de forma consistente.
-
-\- \[ ] Los nombres y términos están alineados.
-
-\- \[ ] No hay decisiones implícitas sin justificar.
+- [ ] La IA está integrada como parte de un caso de uso, no como lógica central.
 
 
 
@@ -272,37 +136,19 @@ Su objetivo es asegurar que el proyecto cumple \*\*todos los requisitos técnico
 
 
 
-\## 14. Preparación para la Defensa
+## 7. Pipeline de Datos y Asincronía
 
 
 
-\- \[ ] Puedo explicar el problema en menos de 2 minutos.
+- [ ] El pipeline de datos de mercado está documentado end-to-end.
 
-\- \[ ] Puedo justificar cada decisión arquitectónica clave.
+- [ ] Se explica la normalización y validación de datos.
 
-\- \[ ] Sé explicar por qué NO se ejecuta trading real.
+- [ ] Se describen estrategias de retries e idempotencia.
 
-\- \[ ] Puedo explicar cómo controlo los riesgos de la IA.
+- [ ] El procesamiento asíncrono está justificado.
 
-\- \[ ] Puedo explicar cómo pasaría esto a producción real.
-
-
-
----
-
-
-
-\## 15. Estado Final
-
-
-
-\- \[ ] El proyecto cumple los requisitos del máster.
-
-\- \[ ] El proyecto es técnicamente defendible.
-
-\- \[ ] El proyecto demuestra aprendizaje real.
-
-\- \[ ] El proyecto está listo para ser entregado.
+- [ ] Los fallos parciales están contemplados.
 
 
 
@@ -310,7 +156,156 @@ Su objetivo es asegurar que el proyecto cumple \*\*todos los requisitos técnico
 
 
 
-\*\*Conclusión:\*\*  
+## 8. Uso de Inteligencia Artificial
+
+
+
+- [ ] El rol de la IA está claramente delimitado.
+
+- [ ] Los prompts están versionados conceptualmente.
+
+- [ ] Los inputs y outputs están controlados.
+
+- [ ] Existe trazabilidad completa de las recomendaciones.
+
+- [ ] Se explicitan los riesgos y mitigaciones de la IA.
+
+
+
+---
+
+
+
+## 9. Seguridad
+
+- [ ] La autenticación está correctamente explicada (Supabase Auth).
+- [ ] El backend valida JWT con `Authorization: Bearer <token>` (verificación local via JWKS).
+- [ ] La autorización distingue roles ADMIN y USER **sin confiar en el cliente**.
+- [ ] El rol se deriva de `app_metadata.inversorai_role` (default USER).
+- [ ] Los endpoints ADMIN están protegidos por RBAC (`requireAdmin`).
+- [ ] Cambios de rol requieren step-up auth (401 + `code: REAUTH_REQUIRED` si el token no es reciente).
+- [ ] No es posible demover al último ADMIN (protección de gobernanza).
+- [ ] El “primer ADMIN” se define por script de deploy (idempotente), no por hardcode.
+- [ ] El diseño está alineado con OWASP Top 10 en las amenazas relevantes del MVP.
+
+---
+
+## 10. Testing y Calidad
+
+
+
+- [ ] Existe una estrategia de testing definida.
+
+- [ ] Se describen distintos niveles de testing.
+
+- [ ] El dominio y los casos de uso están testeados conceptualmente.
+
+- [ ] El uso de IA tiene una estrategia de testing específica.
+
+- [ ] La calidad es tratada como un atributo transversal.
+
+
+
+---
+
+
+
+## 11. CI/CD y Producción
+
+
+
+- [ ] Existe una estrategia clara de CI.
+
+- [ ] El pipeline bloquea código defectuoso.
+
+- [ ] El despliegue a producción está documentado.
+
+- [ ] La gestión de secretos está contemplada (nunca `service_role` en frontend).
+- [ ] El deploy ejecuta (o documenta ejecutar) el bootstrap del primer ADMIN (`npm run bootstrap:admin`).
+
+- [ ] Existe estrategia de rollback.
+
+
+
+---
+
+
+
+## 12. Evaluabilidad del Proyecto
+
+
+
+- [ ] El proyecto puede ejecutarse en modo demo.
+
+- [ ] No requiere credenciales reales obligatorias.
+
+- [ ] Los flujos principales pueden demostrarse.
+
+- [ ] La arquitectura puede explicarse sin ejecutar código.
+
+
+
+---
+
+
+
+## 13. Coherencia Global
+
+
+
+- [ ] No hay contradicciones entre documentos.
+
+- [ ] Los conceptos se usan de forma consistente.
+
+- [ ] Los nombres y términos están alineados.
+
+- [ ] No hay decisiones implícitas sin justificar.
+
+
+
+---
+
+
+
+## 14. Preparación para la Defensa
+
+
+
+- [ ] Puedo explicar el problema en menos de 2 minutos.
+
+- [ ] Puedo justificar cada decisión arquitectónica clave.
+
+- [ ] Sé explicar por qué NO se ejecuta trading real.
+
+- [ ] Puedo explicar cómo controlo los riesgos de la IA.
+
+- [ ] Puedo explicar cómo pasaría esto a producción real.
+
+
+
+---
+
+
+
+## 15. Estado Final
+
+
+
+- [ ] El proyecto cumple los requisitos del máster.
+
+- [ ] El proyecto es técnicamente defendible.
+
+- [ ] El proyecto demuestra aprendizaje real.
+
+- [ ] El proyecto está listo para ser entregado.
+
+
+
+---
+
+
+
+**Conclusión:**  
 
 Si todos los puntos anteriores están marcados, el Trabajo Final de Máster está en condiciones óptimas para su entrega y defensa ante el tribunal.
 
