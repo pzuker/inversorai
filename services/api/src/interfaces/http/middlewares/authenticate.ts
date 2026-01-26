@@ -1,23 +1,29 @@
 import type { Request, Response, NextFunction } from 'express';
+import { verifySupabaseJwt, type VerifiedUser } from '../../../infrastructure/auth/index.js';
 
 export interface AuthenticatedRequest extends Request {
-  user?: {
-    role: string;
-  };
+  user?: VerifiedUser;
 }
 
-export function authenticate(
+export async function authenticate(
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
-): void {
-  const role = req.headers['x-user-role'] as string | undefined;
+): Promise<void> {
+  const authHeader = req.headers['authorization'];
 
-  if (!role) {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
 
-  req.user = { role };
-  next();
+  const token = authHeader.slice(7); // Remove 'Bearer ' prefix
+
+  try {
+    const user = await verifySupabaseJwt(token);
+    req.user = user;
+    next();
+  } catch {
+    res.status(401).json({ error: 'Unauthorized' });
+  }
 }

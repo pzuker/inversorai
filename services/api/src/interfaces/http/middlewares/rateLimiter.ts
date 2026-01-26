@@ -25,8 +25,8 @@ export function createRateLimiter(options: RateLimiterOptions) {
       return;
     }
 
-    // Extract user identifier (use IP as fallback since user.id is not available)
-    const userId = req.ip ?? req.headers['x-forwarded-for'] ?? 'anonymous';
+    // Extract user identifier (use authenticated user.id, fallback to IP)
+    const userId = req.user?.id ?? req.ip ?? req.headers['x-forwarded-for'] ?? 'anonymous';
     const assetSymbol = (req.body?.symbol ?? req.query['symbol'] ?? 'unknown') as string;
 
     // Key format: resource:userId:assetSymbol

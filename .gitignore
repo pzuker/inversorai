@@ -35,5 +35,8 @@ coverage/
 *.tmp
 *.temp
 _ul
+zip.ps1
+inversorai.zip
 
 PROMPT.md
+CLAUDE.md

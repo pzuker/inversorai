@@ -1,5 +1,11 @@
-import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
 import request from 'supertest';
+import {
+  setupJwtTestEnvironment,
+  cleanupJwtTestEnvironment,
+  generateAdminToken,
+  generateUserToken,
+} from './helpers/jwtTestHelper.js';
 
 const hasSupabaseEnv = (): boolean => {
   return !!(process.env['SUPABASE_URL'] && process.env['SUPABASE_SERVICE_ROLE_KEY']);
@@ -13,13 +19,26 @@ describeIfSupabase('API Integration Tests', () => {
 
   let app: import('express').Express;
   let supabaseClient: import('@supabase/supabase-js').SupabaseClient;
+  let adminToken: string;
+  let userToken: string;
 
   beforeAll(async () => {
+    // Setup JWT test environment with mocked JWKS
+    await setupJwtTestEnvironment();
+
+    // Generate test tokens
+    adminToken = await generateAdminToken();
+    userToken = await generateUserToken();
+
     const { createApp } = await import('../interfaces/http/app.js');
     const { createSupabaseClient } = await import('../infrastructure/supabase/index.js');
 
     app = createApp();
     supabaseClient = createSupabaseClient();
+  });
+
+  afterAll(() => {
+    cleanupJwtTestEnvironment();
   });
 
   beforeEach(async () => {
@@ -59,32 +78,34 @@ describeIfSupabase('API Integration Tests', () => {
     it('returns 401 without auth header', async () => {
       const response = await request(app).post(endpoint).query({ symbol: TEST_SYMBOL });
       expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Unauthorized');
     });
 
-    it('returns 403 with USER role', async () => {
+    it('returns 403 with USER token', async () => {
       const response = await request(app)
         .post(endpoint)
         .query({ symbol: TEST_SYMBOL })
-        .set('x-user-role', 'USER');
+        .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Forbidden');
     });
 
     it('returns 400 with invalid symbol', async () => {
       const response = await request(app)
         .post(endpoint)
         .query({ symbol: 'INVALID-SYMBOL' })
-        .set('x-user-role', 'ADMIN');
+        .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(400);
       expect(response.body.error).toContain('Invalid symbol');
       expect(response.body.error).toContain('Allowed symbols');
     });
 
-    it('returns 200 with ADMIN role and includes pipeline summary', async () => {
+    it('returns 200 with ADMIN token and includes pipeline summary', async () => {
       const response = await request(app)
         .post(endpoint)
         .query({ symbol: TEST_SYMBOL })
-        .set('x-user-role', 'ADMIN');
+        .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -99,19 +120,20 @@ describeIfSupabase('API Integration Tests', () => {
     it('returns 401 without auth header', async () => {
       const response = await request(app).get(endpoint).query({ symbol: TEST_SYMBOL });
       expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Unauthorized');
     });
 
-    it('returns 200 with USER role and ordered data', async () => {
-      // Run pipeline to populate data
+    it('returns 200 with USER token and ordered data', async () => {
+      // Run pipeline to populate data (requires ADMIN)
       await request(app)
         .post('/api/v1/admin/pipeline/run')
         .query({ symbol: TEST_SYMBOL })
-        .set('x-user-role', 'ADMIN');
+        .set('Authorization', `Bearer ${adminToken}`);
 
       const response = await request(app)
         .get(endpoint)
         .query({ symbol: TEST_SYMBOL })
-        .set('x-user-role', 'USER');
+        .set('Authorization', `Bearer ${userToken}`);
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body.data)).toBe(true);
