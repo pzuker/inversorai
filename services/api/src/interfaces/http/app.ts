@@ -28,7 +28,7 @@ export function createApp(): Express {
   app.use(helmet());
 
   app.use(cors(getCorsConfig()));
-  app.use(express.json());
+  app.use(express.json({ limit: '1mb' }));
 
   const marketDataQueryController = new MarketDataQueryController();
   const getLatestInsightController = new GetLatestInvestmentInsightController();
