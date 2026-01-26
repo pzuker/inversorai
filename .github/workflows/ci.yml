@@ -24,10 +24,9 @@ jobs:
       - name: Backend tests (unit only)
         working-directory: services/api
         env:
-          # CI-lite: runs unit tests only, skips Supabase integration tests.
-          # Integration tests require SUPABASE_SERVICE_ROLE_KEY which is intentionally omitted.
+          # CI-lite: runs unit tests only, skips external integration tests.
+          # OpenAI and Supabase integration tests require secrets which are intentionally omitted.
           SUPABASE_URL: https://placeholder.supabase.co
-          OPENAI_API_KEY: placeholder-openai-key
         run: npm test
 
       - name: Backend build
