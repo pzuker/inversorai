@@ -41,7 +41,7 @@ Todos los precios e históricos provienen de **Yahoo Finance** y son **verificab
 ```mermaid
 flowchart TB
   subgraph Client
-    U[""Usuario (Profesor)""]:::c
+    U[Usuario]:::c
     A[Admin]:::c
   end
 
@@ -50,12 +50,12 @@ flowchart TB
   end
 
   subgraph Backend
-    API["API Node.js\nClean/Hexagonal"]:::b
+    API[API Node.js - Clean/Hexagonal]:::b
   end
 
   subgraph Supabase
     AUTH[Auth]:::s
-    DB["(PostgreSQL)"]:::s
+    DB[PostgreSQL]:::s
   end
 
   YF[Yahoo Finance]:::e
@@ -65,18 +65,18 @@ flowchart TB
   A --> W
 
   W -->|HTTPS + Bearer JWT| API
-  API -->|Verifica JWT (JWKS)| AUTH
+  API -->|Verifica JWT via JWKS| AUTH
 
   API -->|Lecturas| DB
-  API -->|Escrituras (pipeline)| DB
+  API -->|Escrituras - pipeline| DB
 
   API -->|Ingesta de mercado| YF
   API -->|Insights explicables| LLM
 
-  classDef c fill:#111,stroke:#555,color:#fff;
-  classDef b fill:#222,stroke:#777,color:#fff;
-  classDef s fill:#0b2b2b,stroke:#3aa,color:#fff;
-  classDef e fill:#2b1a0b,stroke:#a63,color:#fff;
+  classDef c fill:#111,stroke:#555,color:#fff
+  classDef b fill:#222,stroke:#777,color:#fff
+  classDef s fill:#0b2b2b,stroke:#3aa,color:#fff
+  classDef e fill:#2b1a0b,stroke:#a63,color:#fff
 ```
 
 **Regla clave:** los providers externos (Yahoo/OpenAI) se usan **solo para ingesta/generación y escritura**; la UI siempre lee desde **PostgreSQL** como fuente de verdad.

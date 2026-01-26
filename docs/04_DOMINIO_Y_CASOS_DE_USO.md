@@ -30,19 +30,18 @@ El siguiente diagrama resume la arquitectura del MVP como **contenedores** y **d
 
 ```mermaid
 flowchart LR
-  Client[Cliente Web<br/>(USER / ADMIN)] -->|HTTPS| Web[Next.js App Router<br/>UI + Auth client]
-  Web -->|Bearer JWT| Api[API Node.js<br/>(Interfaces + Application + Domain)]
-  Api -->|Verify JWT (JWKS)| Auth[Supabase Auth]
+  Client[Cliente Web - USER/ADMIN] -->|HTTPS| Web[Next.js App Router]
+  Web -->|Bearer JWT| Api[API Node.js - Clean Architecture]
+  Api -->|Verify JWT via JWKS| Auth[Supabase Auth]
   Api -->|Read model| Db[(Supabase Postgres)]
-  Api -->|Write model (pipeline)| Db
+  Api -->|Write model - pipeline| Db
   Api -->|Market data provider| YF[Yahoo Finance]
   Api -->|LLM provider| OpenAI[OpenAI]
 
-  %% Clean Architecture emphasis
-  subgraph Ports [Ports (Application Layer)]
+  subgraph Ports
     P1[MarketDataProviderPort]
     P2[AIInsightPort]
-    P3[Repositories (DB)]
+    P3[Repositories]
   end
 ```
 
