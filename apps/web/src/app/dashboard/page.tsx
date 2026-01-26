@@ -19,8 +19,6 @@ import { useMarketData, useLatestRecommendation, useLatestInsight } from '@/hook
 import { runPipeline, type PipelineResult } from '@/lib/apiClient';
 import { DEFAULT_ASSET, getAssetBySymbol, getAssetTypeLabel, type Asset } from '@/lib/assets';
 
-const ADMIN_EMAIL = 'admin@inversorai.com';
-
 function DashboardContent() {
   const { user, session, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -35,7 +33,8 @@ function DashboardContent() {
     return DEFAULT_ASSET;
   }, [searchParams]);
 
-  const isAdmin = user?.email === ADMIN_EMAIL;
+  // Derive admin status from Supabase app_metadata
+  const isAdmin = user?.app_metadata?.inversorai_role === 'ADMIN';
 
   const {
     data: marketData,

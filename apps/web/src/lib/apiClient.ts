@@ -49,7 +49,6 @@ export async function fetchMarketData(token: string, symbol: string = 'BTC-USD')
   const response = await fetch(`${API_BASE_URL}/api/v1/market-data?symbol=${symbol}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
-      'x-user-role': 'USER',
     },
   });
 
@@ -65,7 +64,6 @@ export async function fetchLatestRecommendation(token: string, symbol: string = 
   const response = await fetch(`${API_BASE_URL}/api/v1/recommendations/latest?symbol=${symbol}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
-      'x-user-role': 'USER',
     },
   });
 
@@ -85,7 +83,6 @@ export async function fetchLatestInsight(token: string, symbol: string = 'BTC-US
   const response = await fetch(`${API_BASE_URL}/api/v1/insights/latest?symbol=${symbol}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
-      'x-user-role': 'USER',
     },
   });
 
@@ -106,7 +103,6 @@ export async function runPipeline(token: string, symbol: string = 'BTC-USD'): Pr
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'x-user-role': 'ADMIN',
       'Content-Type': 'application/json',
     },
   });
