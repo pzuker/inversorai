@@ -19,8 +19,8 @@ export function createRateLimiter(options: RateLimiterOptions) {
   const { windowMs, maxRequests, resourceName } = options;
 
   return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
-    // Skip rate limiting in test environment
-    if (process.env['NODE_ENV'] === 'test') {
+    // Skip rate limiting when explicitly disabled (for testing)
+    if (process.env['DISABLE_RATE_LIMIT'] === 'true') {
       next();
       return;
     }
@@ -70,3 +70,8 @@ setInterval(() => {
     }
   }
 }, 10 * 60 * 1000);
+
+// For testing: clear all rate limit entries
+export function clearRateLimitStore(): void {
+  rateLimitStore.clear();
+}
