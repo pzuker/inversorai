@@ -4,6 +4,23 @@ on:
   push:
   pull_request:
 
+# =============================================================================
+# CI-LITE STRATEGY
+# =============================================================================
+# This workflow intentionally runs ONLY unit tests, skipping external
+# integration tests that require secrets (OpenAI, Supabase with service role).
+#
+# Skipped integration tests (require secrets not provided):
+#   - OpenAIProvider.int.test.ts       (needs OPENAI_API_KEY)
+#   - SupabaseMarketDataRepository.int.test.ts (needs SUPABASE_SERVICE_ROLE_KEY)
+#   - SupabaseInsightRecommendation.int.test.ts (needs SUPABASE_SERVICE_ROLE_KEY)
+#   - IngestAndPersist.orch.test.ts    (needs SUPABASE_SERVICE_ROLE_KEY)
+#   - api.int.test.ts                  (needs SUPABASE_SERVICE_ROLE_KEY)
+#
+# These tests use `describe.skip` when env vars are missing, so CI passes.
+# Run integration tests locally with proper .env configuration.
+# =============================================================================
+
 jobs:
   ci:
     runs-on: ubuntu-latest
@@ -24,8 +41,9 @@ jobs:
       - name: Backend tests (unit only)
         working-directory: services/api
         env:
-          # CI-lite: runs unit tests only, skips external integration tests.
-          # OpenAI and Supabase integration tests require secrets which are intentionally omitted.
+          # Placeholder URL for module initialization (some imports reference env vars).
+          # SUPABASE_SERVICE_ROLE_KEY and OPENAI_API_KEY are intentionally NOT set
+          # to ensure integration tests are skipped in CI.
           SUPABASE_URL: https://placeholder.supabase.co
         run: npm test
 
@@ -33,10 +51,14 @@ jobs:
         working-directory: services/api
         run: npm run build
 
+      - name: Frontend tests
+        working-directory: apps/web
+        run: npm test
+
       - name: Frontend build
         working-directory: apps/web
         env:
-          # Placeholder values for build (client-side, no server calls at build time)
+          # Placeholder values for Next.js build (client-side env vars, no server calls)
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
         run: npm run build
