@@ -21,13 +21,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Backend tests
+      - name: Backend tests (unit only)
         working-directory: services/api
         env:
-          # Placeholder values for tests (mocked, no real connections)
+          # CI-lite: runs unit tests only, skips Supabase integration tests.
+          # Integration tests require SUPABASE_SERVICE_ROLE_KEY which is intentionally omitted.
           SUPABASE_URL: https://placeholder.supabase.co
-          SUPABASE_ANON_KEY: placeholder-anon-key
-          SUPABASE_SERVICE_ROLE_KEY: placeholder-service-role-key
           OPENAI_API_KEY: placeholder-openai-key
         run: npm test
 
