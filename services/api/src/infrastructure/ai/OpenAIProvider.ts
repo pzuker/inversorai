@@ -36,6 +36,28 @@ Required JSON Response Format:
 
 Respond with ONLY the JSON object, no other text.`;
 
+/**
+ * Sanitizes user-provided input to prevent prompt injection attacks.
+ * - Removes control tokens and template delimiters: { } < > and triple backticks
+ * - Caps length at 2000 characters to prevent prompt stuffing
+ */
+export function sanitize(input: string): string {
+  const MAX_LENGTH = 2000;
+
+  // Remove curly braces, angle brackets, and triple backticks
+  let sanitized = input
+    .replace(/[{}]/g, '')
+    .replace(/[<>]/g, '')
+    .replace(/```/g, '');
+
+  // Cap length
+  if (sanitized.length > MAX_LENGTH) {
+    sanitized = sanitized.substring(0, MAX_LENGTH);
+  }
+
+  return sanitized;
+}
+
 export class OpenAIProvider implements AIProviderPort {
   private client: OpenAI;
   private promptVersion: string;
@@ -86,13 +108,13 @@ export class OpenAIProvider implements AIProviderPort {
 
   private buildPrompt(input: AIProviderInput): string {
     return PROMPT_TEMPLATE
-      .replace('{{assetSymbol}}', input.assetSymbol)
-      .replace('{{asOf}}', input.asOf)
-      .replace('{{resolution}}', input.resolution)
-      .replace('{{trend}}', input.trend)
-      .replace('{{signalStrength}}', String(input.signalStrength))
-      .replace('{{kpis}}', JSON.stringify(input.kpis))
-      .replace('{{rationale}}', input.rationale);
+      .replace('{{assetSymbol}}', sanitize(input.assetSymbol))
+      .replace('{{asOf}}', sanitize(input.asOf))
+      .replace('{{resolution}}', sanitize(input.resolution))
+      .replace('{{trend}}', sanitize(input.trend))
+      .replace('{{signalStrength}}', sanitize(String(input.signalStrength)))
+      .replace('{{kpis}}', sanitize(JSON.stringify(input.kpis)))
+      .replace('{{rationale}}', sanitize(input.rationale));
   }
 
   getPromptVersion(): string {
