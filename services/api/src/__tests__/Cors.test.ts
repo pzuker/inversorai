@@ -250,4 +250,46 @@ describe('CORS Middleware Integration', () => {
     expect(response.headers['access-control-allow-origin']).toBe('http://example.com');
     expect(response.headers['access-control-allow-methods']).toContain('GET');
   });
+
+  it('preflight OPTIONS returns 204 and allows GET and POST methods', async () => {
+    process.env['CORS_ORIGINS'] = 'http://example.com';
+
+    const { createApp } = await import('../interfaces/http/app.js');
+    const app = createApp();
+
+    const response = await request(app)
+      .options('/api/v1/market-data')
+      .set('Origin', 'http://example.com')
+      .set('Access-Control-Request-Method', 'POST')
+      .set('Access-Control-Request-Headers', 'Content-Type,Authorization');
+
+    // Preflight should return 204 No Content (or 200 depending on cors config)
+    expect([200, 204]).toContain(response.status);
+
+    // Should echo back the allowed origin
+    expect(response.headers['access-control-allow-origin']).toBe('http://example.com');
+
+    // Should include both GET and POST in allowed methods
+    const allowedMethods = response.headers['access-control-allow-methods'];
+    expect(allowedMethods).toContain('GET');
+    expect(allowedMethods).toContain('POST');
+
+    // Should allow credentials
+    expect(response.headers['access-control-allow-credentials']).toBe('true');
+  });
+
+  it('preflight OPTIONS rejects disallowed origin', async () => {
+    process.env['CORS_ORIGINS'] = 'http://example.com';
+
+    const { createApp } = await import('../interfaces/http/app.js');
+    const app = createApp();
+
+    const response = await request(app)
+      .options('/api/v1/market-data')
+      .set('Origin', 'http://malicious.com')
+      .set('Access-Control-Request-Method', 'POST');
+
+    // Should not set Access-Control-Allow-Origin for disallowed origin
+    expect(response.headers['access-control-allow-origin']).toBeUndefined();
+  });
 });
