@@ -27,3 +27,8 @@ Este repositorio contiene documentación orientada a **tribunal técnico**: deci
 
 - `docs/11_OPERACION_ADMIN_Y_GOBERNANZA.md`
 
+## Seguridad y Configuración
+
+- `docs/SUPABASE_CONFIG.md` — Configuración requerida de Supabase
+- `docs/AUDIT_LOGGING.md` — Audit logging, retención y consideraciones GDPR
+
