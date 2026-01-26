@@ -9,6 +9,13 @@ export interface IngestAndPersistResult {
 }
 
 export async function runIngestAndPersist(assetSymbol: string): Promise<IngestAndPersistResult> {
+  if (process.env['NODE_ENV'] === 'production') {
+    throw new Error(
+      'runIngestAndPersist uses FakeMarketDataProvider and is for test/dev only. ' +
+      'It cannot be used in production.'
+    );
+  }
+
   const supabaseClient = createSupabaseClient();
 
   const provider = new FakeMarketDataProvider();

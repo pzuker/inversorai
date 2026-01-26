@@ -3,6 +3,16 @@ import './env.js';
 
 import { createApp } from './app.js';
 
+// Fail-fast: production requires REAL market data provider
+const isProduction = process.env['NODE_ENV'] === 'production';
+const marketDataProvider = process.env['MARKET_DATA_PROVIDER'];
+
+if (isProduction && marketDataProvider !== 'REAL') {
+  console.error('FATAL: Production requires MARKET_DATA_PROVIDER=REAL');
+  console.error(`Current value: ${marketDataProvider ?? '(not set)'}`);
+  process.exit(1);
+}
+
 const PORT = process.env['PORT'] ?? 3001;
 
 const app = createApp();

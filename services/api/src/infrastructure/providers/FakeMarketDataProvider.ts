@@ -23,6 +23,12 @@ function seededRandom(seed: number): () => number {
 }
 
 export class FakeMarketDataProvider implements MarketDataProviderPort {
+  constructor() {
+    if (process.env['NODE_ENV'] === 'production') {
+      throw new Error('FakeMarketDataProvider cannot be used in production');
+    }
+  }
+
   async fetchMarketData(assetSymbol: string): Promise<MarketDataPoint[]> {
     const seed = hashString(assetSymbol);
     const random = seededRandom(seed);
