@@ -6,7 +6,8 @@
     "build": "tsc",
     "dev": "echo \"dev: not implemented yet\"",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "bootstrap:admin": "npm run build && node dist/runners/bootstrapInitialAdmin.js"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

@@ -6,3 +6,9 @@ export { GenerateInvestmentInsight, type GenerateInvestmentInsightResult } from 
 export { GetLatestInvestmentInsight } from './GetLatestInvestmentInsight.js';
 export { GetLatestRecommendation } from './GetLatestRecommendation.js';
 export { RunMarketAnalysisPipeline, type PipelineDependencies, type PipelineSummary } from './RunMarketAnalysisPipeline.js';
+export {
+  BootstrapInitialAdmin,
+  type BootstrapInitialAdminInput,
+  type BootstrapInitialAdminResult,
+  type BootstrapStatus,
+} from './BootstrapInitialAdmin.js';
