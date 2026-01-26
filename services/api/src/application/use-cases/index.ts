@@ -12,3 +12,17 @@ export {
   type BootstrapInitialAdminResult,
   type BootstrapStatus,
 } from './BootstrapInitialAdmin.js';
+export { ListAdminUsers, type AdminUserView, type ListAdminUsersInput } from './ListAdminUsers.js';
+export {
+  SetUserRole,
+  LastAdminError,
+  UserNotFoundError as SetUserRoleUserNotFoundError,
+  type UserRole,
+  type SetUserRoleInput,
+  type SetUserRoleResult,
+} from './SetUserRole.js';
+export {
+  SendUserPasswordReset,
+  UserNotFoundError as SendUserPasswordResetUserNotFoundError,
+  type SendUserPasswordResetInput,
+} from './SendUserPasswordReset.js';

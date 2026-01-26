@@ -21,6 +21,27 @@ export class SupabaseUserAdminService implements UserAdminPort {
     }));
   }
 
+  async getUserById(id: string): Promise<AdminUser | null> {
+    const { data, error } = await this.supabase.auth.admin.getUserById(id);
+
+    if (error) {
+      if (error.message.includes('not found') || error.message.includes('User not found')) {
+        return null;
+      }
+      throw new Error(`Failed to get user: ${error.message}`);
+    }
+
+    if (!data.user) {
+      return null;
+    }
+
+    return {
+      id: data.user.id,
+      email: data.user.email ?? '',
+      app_metadata: data.user.app_metadata as Record<string, unknown> | undefined,
+    };
+  }
+
   async inviteUserByEmail(email: string, redirectTo?: string): Promise<AdminUser> {
     const options = redirectTo ? { redirectTo } : undefined;
 
@@ -65,5 +86,15 @@ export class SupabaseUserAdminService implements UserAdminPort {
       email: data.user.email ?? '',
       app_metadata: data.user.app_metadata as Record<string, unknown> | undefined,
     };
+  }
+
+  async sendPasswordResetEmail(email: string, redirectTo?: string): Promise<void> {
+    const options = redirectTo ? { redirectTo } : undefined;
+
+    const { error } = await this.supabase.auth.resetPasswordForEmail(email, options);
+
+    if (error) {
+      throw new Error(`Failed to send password reset email: ${error.message}`);
+    }
   }
 }

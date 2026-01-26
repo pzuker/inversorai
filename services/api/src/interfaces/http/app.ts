@@ -1,12 +1,15 @@
 import express, { type Express } from 'express';
 import cors from 'cors';
-import { authenticate, requireAdmin, createRateLimiter } from './middlewares/index.js';
+import { authenticate, requireAdmin, requireRecentAuth, createRateLimiter } from './middlewares/index.js';
 import {
   MarketDataQueryController,
   GetLatestInvestmentInsightController,
   GetLatestRecommendationController,
   RunMarketAnalysisPipelineController,
   AssetsController,
+  AdminUsersListController,
+  AdminSetUserRoleController,
+  AdminPasswordResetController,
 } from './controllers/index.js';
 
 // Rate limiter: 1 request per 5 minutes per asset for pipeline
@@ -30,6 +33,9 @@ export function createApp(): Express {
   const getLatestRecommendationController = new GetLatestRecommendationController();
   const runPipelineController = new RunMarketAnalysisPipelineController();
   const assetsController = new AssetsController();
+  const adminUsersListController = new AdminUsersListController();
+  const adminSetUserRoleController = new AdminSetUserRoleController();
+  const adminPasswordResetController = new AdminPasswordResetController();
 
   // Public endpoint - list available assets (no auth required)
   app.get('/api/v1/assets', (req, res) => assetsController.getAll(req, res));
@@ -60,6 +66,29 @@ export function createApp(): Express {
     requireAdmin,
     pipelineRateLimiter,
     (req, res) => runPipelineController.run(req, res)
+  );
+
+  // Admin user management endpoints
+  app.get(
+    '/api/v1/admin/users',
+    authenticate,
+    requireAdmin,
+    (req, res) => adminUsersListController.list(req, res)
+  );
+
+  app.post(
+    '/api/v1/admin/users/:id/role',
+    authenticate,
+    requireAdmin,
+    requireRecentAuth,
+    (req, res) => adminSetUserRoleController.setRole(req, res)
+  );
+
+  app.post(
+    '/api/v1/admin/users/:id/password-reset',
+    authenticate,
+    requireAdmin,
+    (req, res) => adminPasswordResetController.sendReset(req, res)
   );
 
   return app;

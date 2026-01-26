@@ -35,6 +35,14 @@ class FakeUserAdminService implements UserAdminPort {
     return user;
   }
 
+  async getUserById(id: string): Promise<AdminUser | null> {
+    return this.users.find((u) => u.id === id) ?? null;
+  }
+
+  async sendPasswordResetEmail(_email: string, _redirectTo?: string): Promise<void> {
+    // No-op for testing
+  }
+
   addUser(user: AdminUser): void {
     this.users.push(user);
   }
