@@ -1,4 +1,5 @@
 import express, { type Express } from 'express';
+import helmet from 'helmet';
 import cors from 'cors';
 import { authenticate, requireAdmin, requireRecentAuth, createRateLimiter } from './middlewares/index.js';
 import {
@@ -22,6 +23,9 @@ const pipelineRateLimiter = createRateLimiter({
 
 export function createApp(): Express {
   const app = express();
+
+  // Security headers (helmet defaults)
+  app.use(helmet());
 
   app.use(cors(getCorsConfig()));
   app.use(express.json());
