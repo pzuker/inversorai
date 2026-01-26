@@ -11,6 +11,7 @@ import {
   AdminSetUserRoleController,
   AdminPasswordResetController,
 } from './controllers/index.js';
+import { getCorsConfig } from '../../config/cors.js';
 
 // Rate limiter: 1 request per 5 minutes per asset for pipeline
 const pipelineRateLimiter = createRateLimiter({
@@ -22,10 +23,7 @@ const pipelineRateLimiter = createRateLimiter({
 export function createApp(): Express {
   const app = express();
 
-  app.use(cors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
-    credentials: true,
-  }));
+  app.use(cors(getCorsConfig()));
   app.use(express.json());
 
   const marketDataQueryController = new MarketDataQueryController();
