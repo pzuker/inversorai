@@ -1,5 +1,8 @@
 export {
   logAdminAudit,
+  setAuditLogRepository,
+  initAuditLogPersistence,
+  isAuditLogPersistenceEnabled,
   type AdminAuditAction,
   type AdminAuditActor,
   type AdminAuditTarget,
