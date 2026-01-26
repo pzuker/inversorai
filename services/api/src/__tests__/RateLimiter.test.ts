@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { Response, NextFunction } from 'express';
+import type { Response } from 'express';
 import { createRateLimiter, clearRateLimitStore } from '../interfaces/http/middlewares/index.js';
 import type { AuthenticatedRequest } from '../interfaces/http/middlewares/index.js';
 

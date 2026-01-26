@@ -24,7 +24,6 @@ export class AdminSetUserRoleController {
 
     try {
       const userId = req.params['id'] as string | undefined;
-      const body = req.body as SetRoleBody;
 
       if (!userId) {
         logAdminAudit({

@@ -7,7 +7,7 @@ import { z } from 'zod';
 export function formatZodError(error: z.ZodError): string {
   const issues = error.issues;
 
-  if (issues.length === 1) {
+  if (issues.length === 1 && issues[0]) {
     const issue = issues[0];
     const path = issue.path.length > 0 ? `${issue.path.join('.')}: ` : '';
     return `${path}${issue.message}`;
@@ -25,7 +25,7 @@ export function formatZodError(error: z.ZodError): string {
 
 export const setUserRoleBodySchema = z.object({
   role: z.enum(['ADMIN', 'USER'], {
-    errorMap: () => ({ message: 'role must be ADMIN or USER' }),
+    message: 'role must be ADMIN or USER',
   }),
 });
 
