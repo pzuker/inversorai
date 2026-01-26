@@ -30,7 +30,9 @@
       "Bash(npx yaml-lint:*)",
       "Bash(cd:*)",
       "Bash(tree:*)",
-      "Bash(npm run test:coverage:*)"
+      "Bash(npm run test:coverage:*)",
+      "Bash(where:*)",
+      "Bash(npm run dev:*)"
     ]
   }
 }
