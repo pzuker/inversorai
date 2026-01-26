@@ -24,7 +24,8 @@
       "Bash(git filter-branch:*)",
       "Bash(git stash:*)",
       "Bash(FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch:*)",
-      "Bash(npm run bootstrap:admin:*)"
+      "Bash(npm run bootstrap:admin:*)",
+      "Bash(Remove-Item -Recurse -Force \"C:\\\\Users\\\\pzuke\\\\OneDrive\\\\Documentos\\\\JS Proyectos\\\\inversorai\\\\apps\\\\web\\\\.next\" -ErrorAction SilentlyContinue)"
     ]
   }
 }

@@ -114,3 +114,95 @@ export async function runPipeline(token: string, symbol: string = 'BTC-USD'): Pr
   const data = await response.json();
   return data.data;
 }
+
+// Admin User Management
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  role: 'ADMIN' | 'USER';
+}
+
+export interface ApiError {
+  error: string;
+  code?: string;
+}
+
+export interface SetUserRoleResponse {
+  success: boolean;
+  data: AdminUser;
+}
+
+export async function fetchAdminUsers(
+  token: string,
+  page: number = 1,
+  perPage: number = 50
+): Promise<AdminUser[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/admin/users?page=${page}&perPage=${perPage}`,
+    {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || `Failed to fetch users: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.data;
+}
+
+export async function setUserRole(
+  token: string,
+  userId: string,
+  role: 'ADMIN' | 'USER'
+): Promise<SetUserRoleResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/users/${userId}/role`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ role }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    const error = new Error(data.error || `Failed to set role: ${response.status}`) as Error & {
+      status: number;
+      code?: string;
+    };
+    error.status = response.status;
+    error.code = data.code;
+    throw error;
+  }
+
+  return data;
+}
+
+export async function sendPasswordReset(
+  token: string,
+  userId: string,
+  redirectTo?: string
+): Promise<{ success: boolean }> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/users/${userId}/password-reset`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ redirectTo }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || `Failed to send password reset: ${response.status}`);
+  }
+
+  return await response.json();
+}

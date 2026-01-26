@@ -2,7 +2,8 @@
 
 import { Suspense, useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Users } from 'lucide-react';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { Header } from '@/components/header';
 import { AssetSelector } from '@/components/asset-selector';
@@ -155,7 +156,7 @@ function DashboardContent() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-4">
                   <Button
                     onClick={handleRunPipeline}
@@ -171,6 +172,12 @@ function DashboardContent() {
                       'Update Market Data'
                     )}
                   </Button>
+                  <Link href="/dashboard/admin">
+                    <Button variant="outline" size="sm">
+                      <Users className="h-4 w-4 mr-2" />
+                      Manage Users
+                    </Button>
+                  </Link>
                   {pipelineResult && (
                     <span className="text-sm text-green-600 dark:text-green-400">
                       {pipelineResult.ingestedCount} points ingested - {pipelineResult.recommendationAction}
