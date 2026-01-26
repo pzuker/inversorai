@@ -41,7 +41,7 @@ Todos los precios e históricos provienen de **Yahoo Finance** y son **verificab
 ```mermaid
 flowchart TB
   subgraph Client
-    U[Usuario (Profesor)]:::c
+    U[""Usuario (Profesor)""]:::c
     A[Admin]:::c
   end
 
@@ -50,12 +50,12 @@ flowchart TB
   end
 
   subgraph Backend
-    API[API Node.js (Clean/Hexagonal)]:::b
+    API["API Node.js\nClean/Hexagonal"]:::b
   end
 
   subgraph Supabase
     AUTH[Auth]:::s
-    DB[(PostgreSQL)]:::s
+    DB["(PostgreSQL)"]:::s
   end
 
   YF[Yahoo Finance]:::e
