@@ -5,14 +5,10 @@ import {
   SetUserRole,
   LastAdminError,
   SetUserRoleUserNotFoundError,
-  type UserRole,
 } from '../../../application/use-cases/index.js';
 import { createSupabaseClient, SupabaseUserAdminService } from '../../../infrastructure/supabase/index.js';
 import { logAdminAudit } from '../audit/index.js';
-
-interface SetRoleBody {
-  role?: string;
-}
+import { setUserRoleBodySchema, formatZodError } from '../validation/index.js';
 
 export class AdminSetUserRoleController {
   async setRole(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -47,7 +43,10 @@ export class AdminSetUserRoleController {
         return;
       }
 
-      if (!body.role || (body.role !== 'ADMIN' && body.role !== 'USER')) {
+      // Validate request body with Zod
+      const bodyResult = setUserRoleBodySchema.safeParse(req.body);
+      if (!bodyResult.success) {
+        const errorMessage = formatZodError(bodyResult.error);
         logAdminAudit({
           type: 'ADMIN_AUDIT',
           requestId,
@@ -58,13 +57,13 @@ export class AdminSetUserRoleController {
           target: { id: userId },
           clientIp,
           userAgent,
-          error: 'Invalid role. Must be ADMIN or USER',
+          error: errorMessage,
         });
-        res.status(400).json({ error: 'Invalid role. Must be ADMIN or USER' });
+        res.status(400).json({ error: errorMessage });
         return;
       }
 
-      const role = body.role as UserRole;
+      const { role } = bodyResult.data;
 
       const supabaseClient = createSupabaseClient();
       const userAdminService = new SupabaseUserAdminService(supabaseClient);

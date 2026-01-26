@@ -7,10 +7,7 @@ import {
 } from '../../../application/use-cases/index.js';
 import { createSupabaseClient, SupabaseUserAdminService } from '../../../infrastructure/supabase/index.js';
 import { logAdminAudit } from '../audit/index.js';
-
-interface PasswordResetBody {
-  redirectTo?: string;
-}
+import { passwordResetBodySchema, formatZodError } from '../validation/index.js';
 
 export class AdminPasswordResetController {
   async sendReset(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -26,7 +23,6 @@ export class AdminPasswordResetController {
 
     try {
       const userId = req.params['id'] as string | undefined;
-      const body = req.body as PasswordResetBody;
 
       if (!userId) {
         logAdminAudit({
@@ -45,6 +41,27 @@ export class AdminPasswordResetController {
         return;
       }
 
+      // Validate request body with Zod (body is optional, but if provided must be valid)
+      const bodyResult = passwordResetBodySchema.safeParse(req.body ?? {});
+      if (!bodyResult.success) {
+        const errorMessage = formatZodError(bodyResult.error);
+        logAdminAudit({
+          type: 'ADMIN_AUDIT',
+          requestId,
+          timestamp,
+          action: 'PASSWORD_RESET_TRIGGERED',
+          result: 'error',
+          actor,
+          target: { id: userId },
+          clientIp,
+          userAgent,
+          error: errorMessage,
+        });
+        res.status(400).json({ error: errorMessage });
+        return;
+      }
+
+      const body = bodyResult.data;
       // Use body.redirectTo if provided, otherwise fall back to env var
       const redirectTo = body.redirectTo ?? process.env['PASSWORD_RESET_REDIRECT_TO'];
 

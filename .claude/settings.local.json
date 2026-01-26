@@ -27,7 +27,9 @@
       "Bash(npm run bootstrap:admin:*)",
       "Bash(Remove-Item -Recurse -Force \"C:\\\\Users\\\\pzuke\\\\OneDrive\\\\Documentos\\\\JS Proyectos\\\\inversorai\\\\apps\\\\web\\\\.next\" -ErrorAction SilentlyContinue)",
       "Bash(npm audit:*)",
-      "Bash(npx yaml-lint:*)"
+      "Bash(npx yaml-lint:*)",
+      "Bash(cd:*)",
+      "Bash(tree:*)"
     ]
   }
 }

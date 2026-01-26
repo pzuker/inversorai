@@ -114,6 +114,47 @@ describeIfSupabase('API Integration Tests', () => {
     }, 30000); // Pipeline calls external APIs
   });
 
+  describe('POST /api/v1/admin/users/:id/role', () => {
+    const endpoint = '/api/v1/admin/users/test-user-id/role';
+
+    it('returns 400 with invalid role (SUPERADMIN)', async () => {
+      const response = await request(app)
+        .post(endpoint)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ role: 'SUPERADMIN' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toMatch(/role.*ADMIN.*USER/i);
+    });
+
+    it('returns 400 with missing role', async () => {
+      const response = await request(app)
+        .post(endpoint)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBeDefined();
+    });
+
+    it('returns 401 without auth header', async () => {
+      const response = await request(app)
+        .post(endpoint)
+        .send({ role: 'ADMIN' });
+
+      expect(response.status).toBe(401);
+    });
+
+    it('returns 403 with USER token', async () => {
+      const response = await request(app)
+        .post(endpoint)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ role: 'ADMIN' });
+
+      expect(response.status).toBe(403);
+    });
+  });
+
   describe('GET /api/v1/market-data', () => {
     const endpoint = '/api/v1/market-data';
 
