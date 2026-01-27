@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import {
   LineChart,
   Line,
@@ -8,7 +8,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
 } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -74,6 +73,46 @@ function formatPrice(value: number): string {
 }
 
 export function PriceChart({ data, loading, error }: PriceChartProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  const updateDimensions = useCallback(() => {
+    if (containerRef.current) {
+      const { width, height } = containerRef.current.getBoundingClientRect();
+      if (width > 0 && height > 0) {
+        setDimensions({ width, height });
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    // Initial calculation with a small delay to ensure DOM is ready
+    const timer = setTimeout(updateDimensions, 50);
+
+    window.addEventListener('resize', updateDimensions);
+
+    // Recalculate on visibility change (when returning to the page)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        updateDimensions();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', updateDimensions);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [updateDimensions]);
+
+  // Recalculate when data changes (e.g., after navigation)
+  useEffect(() => {
+    if (data.length > 0) {
+      updateDimensions();
+    }
+  }, [data, updateDimensions]);
+
   const chartData = useMemo<ChartDataPoint[]>(() => {
     return data.map((point) => {
       const date = new Date(point.timestamp);
@@ -167,9 +206,11 @@ export function PriceChart({ data, loading, error }: PriceChartProps) {
             </span>
           </div>
         )}
-        <div className={`h-[300px] w-full ${scaleInfo.isLowVolatility ? 'opacity-75' : ''}`}>
-          <ResponsiveContainer width="100%" height="100%">
+        <div ref={containerRef} className={`h-[300px] w-full ${scaleInfo.isLowVolatility ? 'opacity-75' : ''}`}>
+          {dimensions.width > 0 && dimensions.height > 0 ? (
             <LineChart
+              width={dimensions.width}
+              height={dimensions.height}
               data={chartData}
               margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
             >
@@ -217,7 +258,9 @@ export function PriceChart({ data, loading, error }: PriceChartProps) {
                 activeDot={{ r: 4, fill: 'hsl(var(--primary))' }}
               />
             </LineChart>
-          </ResponsiveContainer>
+          ) : (
+            <div className="h-full w-full animate-pulse bg-muted rounded" />
+          )}
         </div>
       </CardContent>
     </Card>

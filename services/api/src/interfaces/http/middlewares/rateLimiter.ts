@@ -35,13 +35,13 @@ export function getSupabaseClientForRateLimiter(): SupabaseClient | null {
   return supabaseClient;
 }
 
-function getOrCreateSupabaseClient(): SupabaseClient {
+async function getOrCreateSupabaseClient(): Promise<SupabaseClient> {
   if (supabaseClient) {
     return supabaseClient;
   }
 
   // Lazy import to avoid circular dependencies and allow mocking
-  const { createSupabaseClient } = require('../../../infrastructure/supabase/createSupabaseClient.js');
+  const { createSupabaseClient } = await import('../../../infrastructure/supabase/createSupabaseClient.js');
   supabaseClient = createSupabaseClient();
   return supabaseClient as SupabaseClient;
 }
@@ -60,7 +60,7 @@ async function checkRateLimitSupabase(
   maxRequests: number
 ): Promise<{ allowed: boolean; remaining: number; resetAt: Date } | null> {
   try {
-    const client = getOrCreateSupabaseClient();
+    const client = await getOrCreateSupabaseClient();
     const { data, error } = await client.rpc('rate_limit_check_and_increment', {
       p_key: key,
       p_window_seconds: windowSeconds,

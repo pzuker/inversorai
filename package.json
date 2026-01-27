@@ -10,12 +10,14 @@
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "dev": "echo \"dev: not implemented yet\"",
-    "lint": "echo \"lint: not implemented yet\""
+    "lint": "echo \"lint: not implemented yet\"",
+    "slides:build": "node scripts/generate-slides.mjs"
   },
   "engines": {
     "node": ">=20.0.0"
   },
   "devDependencies": {
-    "pg": "^8.17.2"
+    "pg": "^8.17.2",
+    "pptxgenjs": "^3.12.0"
   }
 }
