@@ -382,4 +382,4 @@ Use this checklist to verify Supabase Dashboard configuration:
 
 - [Audit Logging](./AUDIT_LOGGING.md)
 - [CI/CD y Deploy](./08_CICD_Y_DEPLOY.md)
-- [Checklist Final](./09_CHECKLIST_FINAL_TFM.md)
+- [Checklist Final](./09_CHECKLIST_FINAL.md)

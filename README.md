@@ -51,25 +51,25 @@ Todos los precios e históricos provienen de **Yahoo Finance** y son **verificab
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                         FRONTEND                                 │
+│                         FRONTEND                                │
 │                    Next.js + App Router                         │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                          BACKEND                                 │
+│                          BACKEND                                │
 │                   Node.js + Express                             │
-│     ┌─────────────────────────────────────────────────────┐    │
-│     │                Clean Architecture                     │    │
-│     │  Domain → Application → Infrastructure → Interfaces  │    │
-│     └─────────────────────────────────────────────────────┘    │
+│     ┌─────────────────────────────────────────────────────┐     │
+│     │                Clean Architecture                   │     │
+│     │  Domain → Application → Infrastructure → Interfaces │     │
+│     └─────────────────────────────────────────────────────┘     │
 └─────────────────────────────────────────────────────────────────┘
          │                    │                    │
          ▼                    ▼                    ▼
-┌─────────────┐      ┌─────────────┐      ┌─────────────┐
-│   Supabase  │      │Yahoo Finance│      │   OpenAI    │
-│ Postgres+Auth│     │    OHLCV    │      │   GPT-4     │
-└─────────────┘      └─────────────┘      └─────────────┘
+┌──────────────┐       ┌─────────────┐      ┌─────────────┐
+│   Supabase   │       │Yahoo Finance│      │   OpenAI    │
+│ Postgres+Auth│       │    OHLCV    │      │   GPT-4     │
+└──────────────┘       └─────────────┘      └─────────────┘
 ```
 
 ### Principio Clave
@@ -164,12 +164,6 @@ El sistema utiliza IA de forma **controlada y auditable**:
 - Bootstrap del primer ADMIN: `npm run bootstrap:admin` (idempotente)
 - Protección contra demover al último ADMIN (error 409)
 - Step-up auth para operaciones sensibles (401 `REAUTH_REQUIRED`)
-
-### Auditoría de Seguridad
-
-El sistema pasó una auditoría completa: **PASS**
-
-Ver: [`docs/audit/00_EXEC_SUMMARY.md`](docs/audit/00_EXEC_SUMMARY.md)
 
 ---
 
@@ -282,7 +276,7 @@ Acceder a: http://localhost:3000
 
 ```env
 SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=...          # SECRETO
+SUPABASE_SERVICE_ROLE_KEY=...           # SECRETO
 OPENAI_API_KEY=...                      # SECRETO
 MARKET_DATA_PROVIDER=REAL               # Obligatorio en producción
 NODE_ENV=production
@@ -336,8 +330,14 @@ inversorai/
 | [00_INDICE.md](docs/00_INDICE.md) | Índice y ruta de lectura |
 | [01_SISTEMA_Y_REQUISITOS.md](docs/01_SISTEMA_Y_REQUISITOS.md) | Requisitos funcionales y no funcionales |
 | [02_VISION_Y_ALCANCE.md](docs/02_VISION_Y_ALCANCE.md) | Visión, objetivos y alcance del MVP |
+| [04_DOMINIO_Y_CASOS_DE_USO.md](docs/04_DOMINIO_Y_CASOS_DE_USO.md) | Modelo de dominio y casos de uso |
+| [05_EVENTOS_Y_ASINCRONIA.md](docs/05_EVENTOS_Y_ASINCRONIA.md) | Eventos y asincronía |
 | [06_PIPELINE.md](docs/06_PIPELINE.md) | Pipeline de datos end-to-end |
 | [07_TESTING.md](docs/07_TESTING.md) | Estrategia TDD y calidad |
+| [08_CICD_Y_DEPLOY.md](docs/08_CICD_Y_DEPLOY.md) | CI/CD y despliegue |
+| [09_CHECKLIST_FINAL.md](docs/09_CHECKLIST_FINAL.md) | Checklist final del TFM |
+| [10_OPERACION_ADMIN.md](docs/10_OPERACION_ADMIN.md) | Operación y gobernanza ADMIN |
+| [11_DESPLIEGUE_PRODUCCION_PASO_A_PASO.md](docs/11_DESPLIEGUE_PRODUCCION_PASO_A_PASO.md) | Runbook de despliegue en producción |
 
 ### ADRs (Architecture Decision Records)
 
@@ -345,8 +345,10 @@ inversorai/
 |-----|----------|
 | [ADR-0001](docs/03_ADR/ADR-0001-stack-y-plataformas.md) | Stack tecnológico y plataformas |
 | [ADR-0002](docs/03_ADR/ADR-0002-proveedor-datos-mercado.md) | Proveedor de datos de mercado |
+| [ADR-0003](docs/03_ADR/ADR-0003-persistencia-timeseries.md) | Persistencia de series temporales |
 | [ADR-0004](docs/03_ADR/ADR-0004-ia-prompting-trazabilidad.md) | IA, prompting y trazabilidad |
 | [ADR-0005](docs/03_ADR/ADR-0005-seguridad-iam-autorizacion.md) | Seguridad, IAM y autorización |
+| [ADR-0006](docs/03_ADR/ADR-0006_DUAL_OUTPUT_ANALISIS_Y_RECOMENDACION_IA.md) | Dual output: análisis + recomendación IA |
 
 ### Configuración y Operación
 
@@ -354,7 +356,7 @@ inversorai/
 |-----------|-------------|
 | [SUPABASE_CONFIG.md](docs/SUPABASE_CONFIG.md) | Configuración de Supabase |
 | [AUDIT_LOGGING.md](docs/AUDIT_LOGGING.md) | Audit logging y GDPR |
-| [12_DEPLOYMENT_CHECKLIST.md](docs/12_DEPLOYMENT_CHECKLIST.md) | Checklist de despliegue |
+| [11_DEPLOYMENT_CHECKLIST.md](docs/11_DEPLOYMENT_CHECKLIST.md) | Checklist de despliegue |
 
 ---
 
@@ -366,7 +368,7 @@ inversorai/
 | Backend | Render / Railway |
 | Database | Supabase (Managed) |
 
-Ver runbook completo: [`docs/12_DESPLIEGUE_PRODUCCION_PASO_A_PASO.md`](docs/12_DESPLIEGUE_PRODUCCION_PASO_A_PASO.md)
+Ver runbook completo: [`docs/11_DESPLIEGUE_PRODUCCION_PASO_A_PASO.md`](docs/11_DESPLIEGUE_PRODUCCION_PASO_A_PASO.md)
 
 ---
 

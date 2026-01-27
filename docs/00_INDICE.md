@@ -48,20 +48,7 @@ Las decisiones de diseño están documentadas formalmente:
 | [ADR-0003](03_ADR/ADR-0003-persistencia-timeseries.md) | Persistencia de series temporales |
 | [ADR-0004](03_ADR/ADR-0004-ia-prompting-trazabilidad.md) | IA, prompting y trazabilidad |
 | [ADR-0005](03_ADR/ADR-0005-seguridad-iam-autorizacion.md) | Seguridad, IAM y autorización |
-| [ADR-0006](03_ADR/ADR-0006-dual-output-ia.md) | Dual output: análisis + recomendación |
-
----
-
-## Auditoría de Seguridad
-
-El sistema incluye una auditoría de seguridad completa:
-
-| Documento | Contenido |
-|-----------|-----------|
-| [audit/00_EXEC_SUMMARY.md](audit/00_EXEC_SUMMARY.md) | Resumen ejecutivo (PASS) |
-| [audit/01_FINDINGS.md](audit/01_FINDINGS.md) | Hallazgos y resoluciones |
-| [audit/02_OWASP_TOP10.md](audit/02_OWASP_TOP10_MAPPING.md) | Mapeo OWASP Top 10 |
-| [audit/03_TEST_QUALITY.md](audit/03_TEST_QUALITY_REVIEW.md) | Revisión de calidad de tests |
+| [ADR-0006](03_ADR/ADR-0006_DUAL_OUTPUT_ANALISIS_Y_RECOMENDACION_IA.md) | Dual output: análisis + recomendación |
 
 ---
 
@@ -84,10 +71,10 @@ El sistema incluye una auditoría de seguridad completa:
 → 04_DOMINIO_Y_CASOS_DE_USO.md → ADR-0001 → ADR-0004
 
 ### Entender la Seguridad
-→ ADR-0005 → audit/00_EXEC_SUMMARY.md → 07_TESTING.md (sección 5)
+→ ADR-0005 → 07_TESTING.md (sección 5) → AUDIT_LOGGING.md
 
 ### Desplegar el Sistema
-→ 08_CICD_Y_DEPLOY.md → 12_DEPLOYMENT_CHECKLIST.md → SUPABASE_CONFIG.md
+→ 08_CICD_Y_DEPLOY.md → 11_DEPLOYMENT_CHECKLIST.md → SUPABASE_CONFIG.md
 
 ---
 

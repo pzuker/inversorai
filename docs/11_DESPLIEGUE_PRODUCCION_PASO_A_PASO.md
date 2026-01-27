@@ -361,4 +361,4 @@ Resultado esperado: Sin errores CORS, respuesta del health check.
 - [Configuración de Supabase](./SUPABASE_CONFIG.md) - Configuración detallada del dashboard
 - [Audit Logging](./AUDIT_LOGGING.md) - Configuración de audit logs y GDPR
 - [CI/CD y Deploy](./08_CICD_Y_DEPLOY.md) - Pipeline de CI
-- [Checklist de Despliegue](./12_DEPLOYMENT_CHECKLIST.md) - Checklist resumido
+- [Checklist de Despliegue](./11_DEPLOYMENT_CHECKLIST.md) - Checklist resumido

@@ -342,6 +342,6 @@ ORDER BY timestamp DESC;
 ## Related Documentation
 
 - [ADR-0005: Seguridad, IAM y Autorización](./03_ADR/ADR-0005-seguridad-iam-autorizacion.md)
-- [Operación Admin y Gobernanza](./11_OPERACION_ADMIN_Y_GOBERNANZA.md)
+- [Operación Admin y Gobernanza](./10_OPERACION_ADMIN.md)
 - [Supabase Configuration](./SUPABASE_CONFIG.md)
-- [Testing y Calidad](./07_TESTING_Y_CALIDAD.md) (includes audit logging tests)
+- [Testing y Calidad](./07_TESTING.md) (includes audit logging tests)

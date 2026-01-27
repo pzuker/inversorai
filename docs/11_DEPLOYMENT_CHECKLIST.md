@@ -1,7 +1,7 @@
 # Checklist de Despliegue — InversorAI
 
 **Versión:** 1.0
-**Referencia completa:** [docs/12_DESPLIEGUE_PRODUCCION_PASO_A_PASO.md](./12_DESPLIEGUE_PRODUCCION_PASO_A_PASO.md)
+**Referencia completa:** [docs/11_DESPLIEGUE_PRODUCCION_PASO_A_PASO.md](./11_DESPLIEGUE_PRODUCCION_PASO_A_PASO.md)
 
 ---
 
@@ -100,4 +100,4 @@
 
 ---
 
-**Documentación completa:** [12_DESPLIEGUE_PRODUCCION_PASO_A_PASO.md](./12_DESPLIEGUE_PRODUCCION_PASO_A_PASO.md)
+**Documentación completa:** [11_DESPLIEGUE_PRODUCCION_PASO_A_PASO.md](./11_DESPLIEGUE_PRODUCCION_PASO_A_PASO.md)
