@@ -1,7 +1,7 @@
 import express, { type Express } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
-import { authenticate, requireAdmin, requireRecentAuth, createRateLimiter } from './middlewares/index.js';
+import { authenticate, requireAdmin, requireRecentAuth, createRateLimiter, requestId, errorHandler } from './middlewares/index.js';
 import {
   MarketDataQueryController,
   GetLatestInvestmentInsightController,
@@ -29,6 +29,9 @@ export function createApp(): Express {
 
   app.use(cors(getCorsConfig()));
   app.use(express.json({ limit: '1mb' }));
+
+  // Request ID for tracing
+  app.use(requestId);
 
   const marketDataQueryController = new MarketDataQueryController();
   const getLatestInsightController = new GetLatestInvestmentInsightController();
@@ -92,6 +95,9 @@ export function createApp(): Express {
     requireAdmin,
     (req, res) => adminPasswordResetController.sendReset(req, res)
   );
+
+  // Centralized error handler (must be last)
+  app.use(errorHandler);
 
   return app;
 }
