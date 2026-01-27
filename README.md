@@ -8,7 +8,7 @@ Este proyecto corresponde al **Trabajo Final de Máster (TFM)** del Máster en D
 
 ---
 
-## 🎯 Objetivos del Proyecto
+## Objetivos del Proyecto
 
 - Analizar activos financieros reales (CRYPTO, STOCK y FX).
 - Automatizar la ingesta de datos de mercado directamente desde Internet.
@@ -20,7 +20,7 @@ Este proyecto corresponde al **Trabajo Final de Máster (TFM)** del Máster en D
 
 ---
 
-## 📊 Activos Soportados (MVP)
+## Activos Soportados (MVP)
 
 El MVP soporta múltiples mercados reales:
 
@@ -34,7 +34,7 @@ Todos los precios e históricos provienen de **Yahoo Finance** y son **verificab
 
 ---
 
-## 🏗️ Arquitectura
+## Arquitectura
 
 ### Diagrama de alto nivel (C4-lite)
 
@@ -81,7 +81,6 @@ flowchart TB
 
 **Regla clave:** los providers externos (Yahoo/OpenAI) se usan **solo para ingesta/generación y escritura**; la UI siempre lee desde **PostgreSQL** como fuente de verdad.
 
-
 El sistema sigue una **Clean / Hexagonal Architecture**, separando claramente:
 
 - **Dominio**: entidades, reglas de negocio y casos de uso.
@@ -98,7 +97,7 @@ El sistema sigue una **Clean / Hexagonal Architecture**, separando claramente:
 
 ---
 
-## 🧠 Inteligencia Artificial
+## Inteligencia Artificial
 
 El sistema utiliza IA para:
 
@@ -108,125 +107,231 @@ El sistema utiliza IA para:
 
 ### Características
 
-- Output validado por esquema.
-- Versionado de prompts.
+- Output validado por esquema Zod (`services/api/src/application/schemas/`).
+- Versionado de prompts (`prompt_version` en cada insight).
 - Insights explicables (no caja negra).
+- Sanitización de inputs LLM para prevenir prompt injection (`services/api/src/infrastructure/ai/OpenAIProvider.ts`).
 - IA integrada como parte del sistema, no como feature aislado.
 
 ---
 
-## 🔐 Seguridad y Roles
+## Seguridad
 
 ### Autenticación
 
-- Supabase Auth (email + password).
-- Registro abierto para usuarios finales.
+- **Supabase Auth** (email + password).
+- Verificación de JWT **local via JWKS** usando la librería `jose` (`services/api/src/infrastructure/auth/verifySupabaseJwt.ts`).
+- El backend obtiene las claves públicas de `{SUPABASE_URL}/auth/v1/.well-known/jwks.json`.
 
-### Roles
+### Autorización (RBAC)
 
-- **USER**
-  - Acceso de solo lectura.
-  - Visualiza datos reales, gráficos, insights y recomendaciones.
-- **ADMIN**
-  - Ejecuta el pipeline de análisis.
-  - Controla la actualización de datos e insights.
+- Roles: **USER** (lectura) y **ADMIN** (lectura + pipeline + gestión de usuarios).
+- El rol se deriva de `app_metadata.inversorai_role` en el JWT (default: USER).
+- Middleware `requireAdmin` protege endpoints administrativos (`services/api/src/interfaces/http/middlewares/requireAdmin.ts`).
 
-### Seguridad adicional
+### Step-up Auth
 
-- Rate limiting en endpoints sensibles (por asset).
-- Protección contra abuso del pipeline.
-- Separación estricta de permisos.
+- Cambios de rol requieren **autenticación reciente** (token emitido hace menos de N segundos).
+- Si el token no es reciente, responde `401` con `code: REAUTH_REQUIRED`.
+- Configurable via `ADMIN_STEP_UP_MAX_AGE_SECONDS` (default: 300s).
+- Implementado en `services/api/src/interfaces/http/middlewares/requireRecentAuth.ts`.
+
+### Controles de Seguridad Adicionales
+
+| Control | Implementación | Archivo |
+|---------|----------------|---------|
+| Helmet headers | CSP, X-Frame-Options, etc. | `app.ts` |
+| CORS allowlist | Via `CORS_ORIGINS` env var | `services/api/src/config/cors.ts` |
+| Request body limit | 1MB máximo | `app.ts` (`express.json({ limit: '1mb' })`) |
+| Rate limiting | Por usuario+asset en pipeline | `services/api/src/interfaces/http/middlewares/rateLimiter.ts` |
+| Rate limit distribuido | Opcional via Supabase Postgres | `docs/db/001_rate_limit_function.sql` |
+| Guardrails de producción | Fake providers bloqueados en prod | `services/api/src/interfaces/http/server.ts` |
+| Request ID tracking | UUID por request, header `X-Request-Id` | `services/api/src/interfaces/http/middlewares/requestId.ts` |
+| Error handler centralizado | Logs estructurados, response sanitizado | `services/api/src/interfaces/http/middlewares/errorHandler.ts` |
+
+### Gobernanza de Admins
+
+- Bootstrap del primer ADMIN via script idempotente: `npm run bootstrap:admin`.
+- Protección contra demover al último ADMIN (`services/api/src/application/use-cases/SetUserRole.ts`).
+- Audit logging de acciones administrativas (`services/api/src/interfaces/http/audit/`).
+- Persistencia opcional de audit logs en Supabase (`AUDIT_LOG_PERSIST=true`).
 
 ---
 
-## 🧪 Testing y Calidad
+## Testing y Calidad
 
-- Desarrollo guiado por tests (TDD).
-- Tests unitarios y de integración (opt-in).
-- Fake providers utilizados únicamente en tests.
-- TypeScript estricto en todo el código.
+### Estrategia
+
+- **TDD** como metodología de desarrollo.
+- Tests unitarios para dominio y casos de uso.
+- Tests de integración **opt-in** (requieren secrets).
+
+### Comandos
+
+```bash
+# Backend
+cd services/api
+npm test              # Unit tests
+npm run test:coverage # Con cobertura
+
+# Frontend
+cd apps/web
+npm test              # Unit tests
+npm run build         # Type-check + build
+```
+
+### CI-lite Policy
+
+El CI ejecuta **solo tests unitarios** sin secrets externos:
+
+- Tests de integración usan `describe.skip` cuando faltan env vars.
+- Esto permite CI verde sin exponer credenciales.
+- Tests de integración completos se ejecutan **localmente** con `.env` configurado.
+
+Ver: `.github/workflows/ci.yml` y `docs/07_TESTING_Y_CALIDAD.md`.
+
+### Tests de Seguridad
+
+- Verificación JWKS mock (`services/api/src/__tests__/`)
+- RBAC (USER vs ADMIN)
+- Step-up auth
+- Guardrails de producción
+- Headers de seguridad (Helmet)
+- Body size limit
+- CORS
 
 ---
 
-## 📦 Stack Tecnológico
+## CI/CD
+
+### GitHub Actions (`.github/workflows/ci.yml`)
+
+| Step | Descripción |
+|------|-------------|
+| `npm ci` | Instalación de dependencias |
+| `npm audit --omit=dev --audit-level=high` | Auditoría de seguridad |
+| `npm run test:coverage` | Tests backend + cobertura |
+| `npm run build` (backend) | Compilación TypeScript |
+| `npm test` (frontend) | Tests frontend |
+| `npm run build` (frontend) | Build Next.js |
+| Upload artifact | `coverage/lcov.info` |
+
+### Dependabot
+
+Configurado para actualizaciones automáticas de npm y GitHub Actions (`.github/dependabot.yml`).
+
+---
+
+## Stack Tecnológico
 
 ### Backend
 
 - Node.js + TypeScript
-- Clean Architecture
+- Express 5 + Clean Architecture
 - Supabase (PostgreSQL + Auth)
 - Yahoo Finance (market data)
 - OpenAI (IA)
+- Vitest (testing)
+- Zod (validación)
 
 ### Frontend
 
-- Next.js (App Router)
+- Next.js 14+ (App Router)
 - TailwindCSS + shadcn/ui
 - Recharts (visualización)
 - Light / Dark mode
-- UX orientada a producto real
+- React Testing Library + Vitest
 
 ### Infraestructura
 
-- Monorepo
+- Monorepo (npm workspaces)
 - Separación backend / frontend
 - Preparado para despliegue en producción
 
 ---
 
-## 🚀 Ejecución en Local
+## Ejecución en Local
 
 ### Requisitos
 
-- Node.js 18+
+- Node.js 20+
 - Cuenta en Supabase
-- Variables de entorno configuradas
+- Variables de entorno configuradas (ver `.env.example`)
 
 ### Backend
 
+```bash
 cd services/api
 npm install
-npm run dev
+node dist/interfaces/http/server.js  # Después de npm run build
+```
 
 ### Frontend
 
+```bash
 cd apps/web
 npm install
 npm run dev
+```
 
-Acceder a:
-
-http://localhost:3000
-
----
-
-## ⚙️ Variables de Entorno (ejemplo)
-
-SUPABASE_URL=...
-SUPABASE_ANON_KEY=...
-SUPABASE_SERVICE_ROLE_KEY=...
-
-OPENAI_API_KEY=...
-
-MARKET_DATA_PROVIDER=REAL
-NODE_ENV=development
+Acceder a: http://localhost:3000
 
 ---
 
-## 🧭 Flujo de Demo Recomendado (Defensa)
+## Variables de Entorno
+
+Ver `.env.example` para la lista completa. Variables clave:
+
+```env
+# Supabase
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=...  # Solo backend
+
+# Frontend (públicas)
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+
+# Seguridad
+CORS_ORIGINS=https://app.inversorai.com
+NODE_ENV=production
+MARKET_DATA_PROVIDER=REAL  # Requerido en producción
+
+# Opcional
+RATE_LIMIT_STORE=supabase  # Para rate limiting distribuido
+AUDIT_LOG_PERSIST=true     # Para persistir audit logs
+```
+
+---
+
+## Documentación Adicional
+
+| Documento | Descripción |
+|-----------|-------------|
+| `docs/00_INDICE.md` | Índice de documentación |
+| `docs/07_TESTING_Y_CALIDAD.md` | Estrategia de testing |
+| `docs/08_CICD_Y_DEPLOY.md` | CI/CD y despliegue |
+| `docs/09_CHECKLIST_FINAL_TFM.md` | Checklist de entrega |
+| `docs/SUPABASE_CONFIG.md` | Configuración de Supabase |
+| `docs/AUDIT_LOGGING.md` | Audit logging y GDPR |
+
+---
+
+## Flujo de Demo Recomendado (Defensa)
 
 1. Registro de usuario (USER).
-2. Login y acceso al dashboard.
-3. Visualización de datos reales (verificables en Google).
+2. Login y acceso al dashboard (`/dashboard`).
+3. Visualización de datos reales (verificables en Google Finance).
 4. Cambio de activos (Crypto / Stock / FX).
-5. Visualización de indicadores y gráficos con escala adaptativa.
-6. Ejecución del pipeline como ADMIN.
-7. Generación de insight IA y recomendación.
-8. Comparación con mercado real.
+5. Visualización de indicadores y gráficos.
+6. Login como ADMIN → Acceso a `/dashboard/admin`.
+7. Ejecución del pipeline de análisis.
+8. Generación de insight IA y recomendación.
+9. Demo de cambio de rol (requiere re-autenticación).
+10. Demo de reset de password.
 
 ---
 
-## 📈 Fuente de Datos y Disclaimer
+## Fuente de Datos y Disclaimer
 
 - Fuente de datos de mercado: **Yahoo Finance**.
 - Los análisis e insights generados **no constituyen asesoramiento financiero**.
@@ -234,7 +339,7 @@ NODE_ENV=development
 
 ---
 
-## 📌 Estado del Proyecto
+## Estado del Proyecto
 
 - MVP completo y funcional.
 - Desplegado en producción.
@@ -243,7 +348,7 @@ NODE_ENV=development
 
 ---
 
-## 👨‍🎓 Autor
+## Autor
 
-Trabajo realizado como **Trabajo Final de Máster (TFM)**  
+Trabajo realizado como **Trabajo Final de Máster (TFM)**
 Máster en Desarrollo con Inteligencia Artificial.

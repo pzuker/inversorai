@@ -1,14 +1,59 @@
 # Audit Logging — Retention and Privacy Considerations
 
-This document describes the audit logging implementation in InversorAI, including what events are logged, data retention recommendations, and privacy considerations for GDPR compliance.
+**Fecha:** 2026-01-26
+
+This document describes the audit logging implementation in InversorAI, including what events are logged, storage options, data retention recommendations, and privacy considerations for GDPR compliance.
+
+---
 
 ## Overview
 
-InversorAI implements structured audit logging for security-sensitive operations. Logs are emitted as JSON to stdout, enabling integration with log aggregation systems (CloudWatch, Datadog, ELK, etc.).
+InversorAI implements structured audit logging for security-sensitive operations. By default, logs are emitted as JSON to stdout. Optionally, logs can be persisted to Supabase PostgreSQL for queryable audit trails.
 
-Two log types exist:
-- **ADMIN_AUDIT**: User management actions
-- **PIPELINE_AUDIT**: Market analysis pipeline executions
+### Log Types
+
+| Type | Description |
+|------|-------------|
+| `ADMIN_AUDIT` | User management actions (role changes, password resets) |
+| `PIPELINE_AUDIT` | Market analysis pipeline executions |
+
+### Storage Options
+
+| Mode | Configuration | Use Case |
+|------|---------------|----------|
+| Stdout only | Default (no env var) | Development, log aggregation via external tools |
+| Stdout + Supabase | `AUDIT_LOG_PERSIST=true` | Production, queryable audit trail in database |
+
+---
+
+## Implementation
+
+### Code References
+
+| Component | File |
+|-----------|------|
+| Audit logger | `services/api/src/interfaces/http/audit/adminAuditLogger.ts` |
+| Supabase repository | `services/api/src/infrastructure/audit/SupabaseAuditLogRepository.ts` |
+| Database migration | `docs/db/002_audit_logs_table.sql` |
+
+### Enabling Persistence
+
+1. **Apply the SQL migration:**
+   ```bash
+   # Via Supabase SQL Editor or CLI
+   # File: docs/db/002_audit_logs_table.sql
+   ```
+
+2. **Set environment variable:**
+   ```env
+   AUDIT_LOG_PERSIST=true
+   ```
+
+3. **Restart the API server**
+
+When enabled, the audit logger:
+- Always logs to stdout (for log aggregation tools)
+- Additionally persists to `audit_logs` table (fire-and-forget, non-blocking)
 
 ---
 
@@ -70,6 +115,50 @@ Two log types exist:
 
 ---
 
+## Database Schema (Persistent Storage)
+
+When `AUDIT_LOG_PERSIST=true`, events are stored in the `audit_logs` table:
+
+```sql
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  action TEXT NOT NULL,
+  result TEXT NOT NULL CHECK (result IN ('success', 'error')),
+  actor_id TEXT NOT NULL,
+  actor_email TEXT,
+  actor_role TEXT,
+  target_id TEXT,
+  target_email TEXT,
+  request_id TEXT,
+  client_ip TEXT,
+  user_agent TEXT,
+  error_message TEXT,
+  metadata JSONB
+);
+```
+
+### Indexes
+
+```sql
+-- Timestamp-based queries (most common for auditing)
+CREATE INDEX idx_audit_logs_timestamp ON audit_logs(timestamp DESC);
+
+-- Filter by action type
+CREATE INDEX idx_audit_logs_action ON audit_logs(action);
+
+-- Filter by actor (who did what)
+CREATE INDEX idx_audit_logs_actor_id ON audit_logs(actor_id);
+
+-- Filter by target (what was affected)
+CREATE INDEX idx_audit_logs_target_id ON audit_logs(target_id);
+
+-- Common query patterns
+CREATE INDEX idx_audit_logs_actor_timestamp ON audit_logs(actor_id, timestamp DESC);
+```
+
+---
+
 ## Why These Fields Are Logged
 
 ### Actor/Target Email
@@ -89,7 +178,7 @@ Logged for:
 ### Request ID and Timestamp
 
 Enable:
-- **Request tracing**: Correlate logs with application errors
+- **Request tracing**: Correlate logs with application errors via `X-Request-Id` header
 - **Timeline reconstruction**: Establish sequence of events during incidents
 
 ---
@@ -105,10 +194,20 @@ Enable:
 
 ### Implementation Notes
 
-1. **Log aggregation**: Ship logs to a centralized system (CloudWatch Logs, Datadog, ELK)
+1. **Log aggregation**: Ship stdout logs to a centralized system (CloudWatch Logs, Datadog, ELK)
 2. **Lifecycle policies**: Configure automatic deletion after retention period
 3. **Immutability**: Use append-only storage to prevent tampering
 4. **Encryption**: Encrypt logs at rest and in transit
+
+### Database Retention (if using persistence)
+
+```sql
+-- Example: Delete logs older than 90 days
+DELETE FROM audit_logs
+WHERE timestamp < NOW() - INTERVAL '90 days';
+```
+
+Consider setting up a scheduled job (pg_cron or external scheduler) for automatic cleanup.
 
 ---
 
@@ -170,6 +269,31 @@ For long-term analytics while respecting privacy:
 
 ---
 
+## Querying Audit Logs (Supabase)
+
+When using persistent storage, audit logs can be queried directly:
+
+```sql
+-- Find all role changes by a specific admin
+SELECT * FROM audit_logs
+WHERE actor_id = 'admin-user-id'
+  AND action = 'USER_ROLE_CHANGED'
+ORDER BY timestamp DESC;
+
+-- Find failed actions in the last 24 hours
+SELECT * FROM audit_logs
+WHERE result = 'error'
+  AND timestamp > NOW() - INTERVAL '24 hours'
+ORDER BY timestamp DESC;
+
+-- Find all actions affecting a specific user
+SELECT * FROM audit_logs
+WHERE target_id = 'user-id'
+ORDER BY timestamp DESC;
+```
+
+---
+
 ## Log Format Examples
 
 ### Successful Role Change
@@ -220,3 +344,4 @@ For long-term analytics while respecting privacy:
 - [ADR-0005: Seguridad, IAM y Autorización](./03_ADR/ADR-0005-seguridad-iam-autorizacion.md)
 - [Operación Admin y Gobernanza](./11_OPERACION_ADMIN_Y_GOBERNANZA.md)
 - [Supabase Configuration](./SUPABASE_CONFIG.md)
+- [Testing y Calidad](./07_TESTING_Y_CALIDAD.md) (includes audit logging tests)

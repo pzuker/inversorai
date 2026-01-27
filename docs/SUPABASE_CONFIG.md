@@ -1,5 +1,7 @@
 # Supabase Configuration Requirements
 
+**Fecha:** 2026-01-26
+
 This document specifies the required Supabase Dashboard settings for the InversorAI MVP. All items marked **REQUIRED** must be configured for the application to function correctly.
 
 ---
@@ -17,6 +19,7 @@ This document specifies the required Supabase Dashboard settings for the Inverso
 **Code Reference:** `services/api/src/infrastructure/auth/verifySupabaseJwt.ts`
 - Backend fetches JWKS from `{SUPABASE_URL}/auth/v1/.well-known/jwks.json`
 - Validates issuer: `{SUPABASE_URL}/auth/v1`
+- Uses `jose` library for cryptographic verification (ES256)
 
 ### Site URL & Redirect URLs
 
@@ -52,7 +55,8 @@ http://localhost:3000/login
 
 **Email Flows Used:**
 1. User registration confirmation
-2. Password reset (triggered via admin action)
+2. Password reset (triggered via admin action or user request)
+3. Admin invite (via bootstrap script)
 
 ### Email Templates
 
@@ -60,6 +64,7 @@ http://localhost:3000/login
 |----------|-------------|-------|
 | Confirm signup | Optional customization | Default works |
 | Reset password | Optional customization | Default works |
+| Invite user | Optional customization | Used by bootstrap script |
 | Magic link | Not used | N/A |
 
 ---
@@ -88,15 +93,13 @@ http://localhost:3000/login
 | Sign in | 30/hour per IP | Keep default |
 | Password reset | 5/hour per IP | Keep default |
 
-**Note:** Application-level rate limiting is implemented separately for the pipeline endpoint.
+**Note:** Application-level rate limiting is implemented separately for the pipeline endpoint (see `rateLimiter.ts`).
 
 ---
 
 ## Database Tables & RLS
 
-### Required Tables
-
-The following tables must exist with RLS enabled:
+### Core Application Tables
 
 #### 1. `market_data`
 
@@ -122,16 +125,12 @@ CREATE TABLE market_data (
 | Service Role (ADMIN pipeline) | Yes | Yes |
 
 ```sql
--- Enable RLS
 ALTER TABLE market_data ENABLE ROW LEVEL SECURITY;
 
--- Allow authenticated users to read
 CREATE POLICY "Users can read market data"
   ON market_data FOR SELECT
   TO authenticated
   USING (true);
-
--- Service role bypasses RLS for writes
 ```
 
 #### 2. `investment_insights`
@@ -197,6 +196,56 @@ CREATE POLICY "Users can read recommendations"
   USING (true);
 ```
 
+### Optional Infrastructure Tables
+
+#### 4. `rate_limit_buckets` (Distributed Rate Limiting)
+
+**Required when:** `RATE_LIMIT_STORE=supabase`
+
+**Migration file:** `docs/db/001_rate_limit_function.sql`
+
+```sql
+CREATE TABLE IF NOT EXISTS rate_limit_buckets (
+  key TEXT PRIMARY KEY,
+  window_start TIMESTAMPTZ NOT NULL,
+  count INT NOT NULL DEFAULT 1
+);
+
+CREATE INDEX IF NOT EXISTS idx_rate_limit_buckets_window_start
+  ON rate_limit_buckets(window_start);
+```
+
+Also includes the `rate_limit_check_and_increment` function for atomic operations.
+
+**Note:** This table is only needed if deploying multiple API instances and enabling distributed rate limiting via `RATE_LIMIT_STORE=supabase`.
+
+#### 5. `audit_logs` (Persistent Audit Trail)
+
+**Required when:** `AUDIT_LOG_PERSIST=true`
+
+**Migration file:** `docs/db/002_audit_logs_table.sql`
+
+```sql
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  action TEXT NOT NULL,
+  result TEXT NOT NULL CHECK (result IN ('success', 'error')),
+  actor_id TEXT NOT NULL,
+  actor_email TEXT,
+  actor_role TEXT,
+  target_id TEXT,
+  target_email TEXT,
+  request_id TEXT,
+  client_ip TEXT,
+  user_agent TEXT,
+  error_message TEXT,
+  metadata JSONB
+);
+```
+
+See `docs/AUDIT_LOGGING.md` for details on retention and privacy.
+
 ---
 
 ## User Roles (app_metadata)
@@ -218,19 +267,31 @@ const role: UserRole = appMetadata?.inversorai_role === 'ADMIN' ? 'ADMIN' : 'USE
 
 ### Setting Admin Role
 
-Use the Supabase Dashboard or Admin API to set the role:
+**Recommended method:** Use the bootstrap script:
+
+```bash
+cd services/api
+npm run bootstrap:admin
+```
+
+Requires environment variables:
+- `INITIAL_ADMIN_EMAIL`: Email of the first admin
+- `INITIAL_ADMIN_INVITE_REDIRECT_TO`: Redirect URL after invite (optional)
+
+**Alternative:** Via SQL Editor (replace USER_ID):
 
 ```sql
--- Via SQL Editor (replace USER_ID)
 UPDATE auth.users
 SET raw_app_meta_data = raw_app_meta_data || '{"inversorai_role": "ADMIN"}'
 WHERE id = 'USER_ID';
 ```
 
-Or use the bootstrap script:
-```bash
-npm run bootstrap:admin --workspace=services/api
-```
+**Behavior:**
+1. If an ADMIN already exists → noop (idempotent)
+2. If user exists → promotes to ADMIN
+3. If user doesn't exist → invites via email and sets ADMIN role
+
+**Implementation:** `services/api/src/runners/bootstrapInitialAdmin.ts`
 
 ---
 
@@ -280,6 +341,8 @@ Use this checklist to verify Supabase Dashboard configuration:
   - [ ] `market_data` table exists
   - [ ] `investment_insights` table exists
   - [ ] `recommendations` table exists
+  - [ ] `rate_limit_buckets` table exists (if using distributed rate limiting)
+  - [ ] `audit_logs` table exists (if using persistent audit logs)
 
 ### RLS
 - [ ] **Database > Tables > [table] > RLS**
@@ -288,6 +351,11 @@ Use this checklist to verify Supabase Dashboard configuration:
   - [ ] RLS enabled on `recommendations`
   - [ ] SELECT policy exists for authenticated users on each table
 
+### Functions
+- [ ] **Database > Functions** (if using distributed rate limiting)
+  - [ ] `rate_limit_check_and_increment` function exists
+  - [ ] `rate_limit_cleanup` function exists (optional)
+
 ### API Keys
 - [ ] **Settings > API**
   - [ ] Note `anon` key for frontend
@@ -295,8 +363,8 @@ Use this checklist to verify Supabase Dashboard configuration:
   - [ ] Note Project URL
 
 ### First Admin
-- [ ] Create first user via Supabase Auth UI or invite
-- [ ] Set `app_metadata.inversorai_role = 'ADMIN'` via SQL Editor or bootstrap script
+- [ ] Create first user via bootstrap script or manual invite
+- [ ] Verify `app_metadata.inversorai_role = 'ADMIN'` is set
 
 ---
 
@@ -306,3 +374,12 @@ Use this checklist to verify Supabase Dashboard configuration:
 2. **RLS**: Always enable RLS on tables containing user data
 3. **Redirect URLs**: Keep allowlist minimal to prevent open redirect vulnerabilities
 4. **Email Confirmation**: Consider enabling for production to verify user emails
+5. **JWKS Verification**: The backend verifies JWTs locally using the JWKS endpoint, not by calling Supabase Auth API
+
+---
+
+## Related Documentation
+
+- [Audit Logging](./AUDIT_LOGGING.md)
+- [CI/CD y Deploy](./08_CICD_Y_DEPLOY.md)
+- [Checklist Final](./09_CHECKLIST_FINAL_TFM.md)
