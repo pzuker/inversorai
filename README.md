@@ -1,8 +1,20 @@
 # InversorAI
 
+> **Plataforma de Análisis Financiero con IA Explicable**
+
+[![CI](https://img.shields.io/badge/CI-passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-180%2B-blue)]()
+[![Security Audit](https://img.shields.io/badge/security-PASS-brightgreen)]()
+
+---
+
+## ¿Qué es InversorAI?
+
 **InversorAI** es una plataforma full-stack de análisis de mercados financieros que combina **datos de mercado reales** (Crypto, Acciones y FX) con **análisis cuantitativo** e **inteligencia artificial** para generar **insights y recomendaciones de inversión explicables**.
 
-El sistema está diseñado y construido siguiendo principios de **Clean Architecture**, **TDD** y **separación estricta de responsabilidades**, con un enfoque claro en **calidad académica, robustez técnica y experiencia de usuario profesional**.
+El sistema está diseñado siguiendo principios de **Clean Architecture**, **TDD** y **separación estricta de responsabilidades**, con un enfoque claro en **calidad académica, robustez técnica y experiencia de usuario profesional**.
+
+> **El foco de este proyecto es la ingeniería del sistema, no predecir el mercado.**
 
 Este proyecto corresponde al **Trabajo Final de Máster (TFM)** del Máster en Desarrollo con Inteligencia Artificial.
 
@@ -10,25 +22,24 @@ Este proyecto corresponde al **Trabajo Final de Máster (TFM)** del Máster en D
 
 ## Objetivos del Proyecto
 
-- Analizar activos financieros reales (CRYPTO, STOCK y FX).
-- Automatizar la ingesta de datos de mercado directamente desde Internet.
-- Calcular indicadores técnicos y métricas cuantitativas.
-- Generar análisis e insights mediante IA explicable.
-- Ofrecer recomendaciones de inversión claras y defendibles.
-- Proveer una interfaz web profesional con UX de nivel producto.
-- Demostrar buenas prácticas de arquitectura, testing y seguridad.
+| Objetivo | Cómo se logra |
+|----------|---------------|
+| Analizar activos financieros reales | Datos de Yahoo Finance (CRYPTO, STOCK, FX) |
+| Automatizar ingesta de datos | Pipeline bajo demanda con rate limiting |
+| Calcular indicadores técnicos | RSI, MACD, volatilidad, Sharpe Ratio |
+| Generar análisis con IA explicable | Prompts versionados, outputs validados |
+| Ofrecer recomendaciones defendibles | BUY/HOLD/SELL con confidence score |
+| Demostrar buenas prácticas | Clean Architecture, TDD, seguridad production-grade |
 
 ---
 
 ## Activos Soportados (MVP)
 
-El MVP soporta múltiples mercados reales:
-
-| Tipo   | Símbolo   | Descripción        |
-|--------|-----------|--------------------|
-| Crypto | BTC-USD   | Bitcoin            |
-| Stock  | AAPL      | Apple Inc.         |
-| FX     | EURUSD=X  | Euro / Dólar USD   |
+| Tipo | Símbolo | Descripción | Verificación Externa |
+|------|---------|-------------|---------------------|
+| Crypto | `BTC-USD` | Bitcoin | Google Finance, CoinMarketCap |
+| Stock | `AAPL` | Apple Inc. | Google Finance, Yahoo Finance |
+| FX | `EURUSD=X` | Euro / Dólar USD | Google Finance, xe.com |
 
 Todos los precios e históricos provienen de **Yahoo Finance** y son **verificables externamente**.
 
@@ -36,125 +47,129 @@ Todos los precios e históricos provienen de **Yahoo Finance** y son **verificab
 
 ## Arquitectura
 
-### Diagrama de alto nivel (C4-lite)
+### Diagrama de Alto Nivel
 
-```mermaid
-flowchart TB
-  subgraph Client
-    U[Usuario]:::c
-    A[Admin]:::c
-  end
-
-  subgraph Frontend
-    W[Next.js Web App]:::b
-  end
-
-  subgraph Backend
-    API[API Node.js - Clean/Hexagonal]:::b
-  end
-
-  subgraph Supabase
-    AUTH[Auth]:::s
-    DB[PostgreSQL]:::s
-  end
-
-  YF[Yahoo Finance]:::e
-  LLM[OpenAI]:::e
-
-  U --> W
-  A --> W
-
-  W -->|HTTPS + Bearer JWT| API
-  API -->|Verifica JWT via JWKS| AUTH
-
-  API -->|Lecturas| DB
-  API -->|Escrituras - pipeline| DB
-
-  API -->|Ingesta de mercado| YF
-  API -->|Insights explicables| LLM
-
-  classDef c fill:#111,stroke:#555,color:#fff
-  classDef b fill:#222,stroke:#777,color:#fff
-  classDef s fill:#0b2b2b,stroke:#3aa,color:#fff
-  classDef e fill:#2b1a0b,stroke:#a63,color:#fff
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         FRONTEND                                 │
+│                    Next.js + App Router                         │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                          BACKEND                                 │
+│                   Node.js + Express                             │
+│     ┌─────────────────────────────────────────────────────┐    │
+│     │                Clean Architecture                     │    │
+│     │  Domain → Application → Infrastructure → Interfaces  │    │
+│     └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────┘
+         │                    │                    │
+         ▼                    ▼                    ▼
+┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+│   Supabase  │      │Yahoo Finance│      │   OpenAI    │
+│ Postgres+Auth│     │    OHLCV    │      │   GPT-4     │
+└─────────────┘      └─────────────┘      └─────────────┘
 ```
 
-**Regla clave:** los providers externos (Yahoo/OpenAI) se usan **solo para ingesta/generación y escritura**; la UI siempre lee desde **PostgreSQL** como fuente de verdad.
+### Principio Clave
 
-El sistema sigue una **Clean / Hexagonal Architecture**, separando claramente:
+> Los providers externos (Yahoo/OpenAI) se usan **solo para ingesta y escritura**; la UI siempre lee desde **PostgreSQL** como fuente de verdad.
 
-- **Dominio**: entidades, reglas de negocio y casos de uso.
-- **Aplicación**: orquestación de procesos.
-- **Infraestructura**: proveedores externos (market data, IA, persistencia).
-- **Interfaces**: API REST y frontend web.
+### Separación de Capas
 
-### Principios clave
+| Capa | Responsabilidad | Ejemplo |
+|------|-----------------|---------|
+| **Dominio** | Entidades y reglas de negocio | `Asset`, `MarketDataPoint`, `Recommendation` |
+| **Aplicación** | Casos de uso y orquestación | `IngestMarketData`, `GenerateInsight` |
+| **Infraestructura** | Providers externos y persistencia | `YahooFinanceProvider`, `OpenAIProvider` |
+| **Interfaces** | API REST y frontend | Express routes, Next.js pages |
 
-- Los providers se utilizan exclusivamente para **ingesta y escritura**.
-- Todas las lecturas se realizan desde una **fuente de verdad persistida**.
-- Los fake providers existen **solo para testing**.
-- El código está preparado para evolucionar sin acoplamientos.
+---
+
+## Pipeline de Análisis
+
+```
+IngestMarketData → ComputeIndicators → AnalyzeMarketTrends → GenerateInsight → Persist
+```
+
+| Etapa | Descripción | Output |
+|-------|-------------|--------|
+| **Ingest** | OHLCV desde Yahoo Finance | `MarketDataPoint[]` |
+| **Compute** | RSI, MACD, volatilidad, Sharpe | `IndicatorSet` |
+| **Analyze** | Tendencia determinística | `MarketAnalysis` |
+| **Generate** | IA con output validado | `InvestmentInsight` + `Recommendation` |
+| **Persist** | Auditable en PostgreSQL | Trazabilidad completa |
+
+**Ejecución:** `POST /api/v1/admin/pipeline/run` (requiere rol ADMIN)
 
 ---
 
 ## Inteligencia Artificial
 
-El sistema utiliza IA para:
+El sistema utiliza IA de forma **controlada y auditable**:
 
-- Analizar tendencias de mercado.
-- Explicar oportunidades de inversión.
-- Generar recomendaciones estructuradas (BUY / HOLD / SELL).
+| Control | Implementación |
+|---------|----------------|
+| **Prompts versionados** | `prompt_version` persistido con cada insight |
+| **Input sanitizado** | Prevención de prompt injection |
+| **Output validado** | Schema Zod estricto |
+| **Trazabilidad** | `input_snapshot_hash`, `model_version`, `timestamp` |
 
-### Características
+### Output de IA
 
-- Output validado por esquema Zod (`services/api/src/application/schemas/`).
-- Versionado de prompts (`prompt_version` en cada insight).
-- Insights explicables (no caja negra).
-- Sanitización de inputs LLM para prevenir prompt injection (`services/api/src/infrastructure/ai/OpenAIProvider.ts`).
-- IA integrada como parte del sistema, no como feature aislado.
+```typescript
+{
+  action: "BUY" | "HOLD" | "SELL",
+  confidence_score: 0.75,      // 0-1
+  risk_level: "MEDIUM",        // LOW | MEDIUM | HIGH
+  reasoning: "RSI indica momentum positivo...",
+  assumptions: [...],
+  caveats: [...]
+}
+```
+
+### Filosofía
+
+> "No testeo si la IA tiene razón. Testeo que el sistema use la IA correctamente."
 
 ---
 
 ## Seguridad
 
-### Autenticación
+### Autenticación y Autorización
 
-- **Supabase Auth** (email + password).
-- Verificación de JWT **local via JWKS** usando la librería `jose` (`services/api/src/infrastructure/auth/verifySupabaseJwt.ts`).
-- El backend obtiene las claves públicas de `{SUPABASE_URL}/auth/v1/.well-known/jwks.json`.
+| Control | Implementación |
+|---------|----------------|
+| **Auth Provider** | Supabase Auth (email + password) |
+| **JWT Verification** | Local via JWKS usando librería `jose` |
+| **RBAC** | Roles USER (lectura) y ADMIN (lectura + pipeline + gestión) |
+| **Role Source** | `app_metadata.inversorai_role` en JWT (default: USER) |
+| **Step-up Auth** | Re-autenticación para cambios de rol (token < 5 min) |
 
-### Autorización (RBAC)
+### Controles de Seguridad
 
-- Roles: **USER** (lectura) y **ADMIN** (lectura + pipeline + gestión de usuarios).
-- El rol se deriva de `app_metadata.inversorai_role` en el JWT (default: USER).
-- Middleware `requireAdmin` protege endpoints administrativos (`services/api/src/interfaces/http/middlewares/requireAdmin.ts`).
-
-### Step-up Auth
-
-- Cambios de rol requieren **autenticación reciente** (token emitido hace menos de N segundos).
-- Si el token no es reciente, responde `401` con `code: REAUTH_REQUIRED`.
-- Configurable via `ADMIN_STEP_UP_MAX_AGE_SECONDS` (default: 300s).
-- Implementado en `services/api/src/interfaces/http/middlewares/requireRecentAuth.ts`.
-
-### Controles de Seguridad Adicionales
-
-| Control | Implementación | Archivo |
-|---------|----------------|---------|
-| Helmet headers | CSP, X-Frame-Options, etc. | `app.ts` |
-| CORS allowlist | Via `CORS_ORIGINS` env var | `services/api/src/config/cors.ts` |
-| Request body limit | 1MB máximo | `app.ts` (`express.json({ limit: '1mb' })`) |
-| Rate limiting | Por usuario+asset en pipeline | `services/api/src/interfaces/http/middlewares/rateLimiter.ts` |
-| Rate limit distribuido | Opcional via Supabase Postgres | `docs/db/001_rate_limit_function.sql` |
-| Guardrails de producción | Fake providers bloqueados en prod | `services/api/src/interfaces/http/server.ts` |
-| Request ID tracking | UUID por request, header `X-Request-Id` | `services/api/src/interfaces/http/middlewares/requestId.ts` |
-| Error handler centralizado | Logs estructurados, response sanitizado | `services/api/src/interfaces/http/middlewares/errorHandler.ts` |
+| Control | Implementación | Test de Regresión |
+|---------|----------------|-------------------|
+| Helmet headers | CSP, X-Frame-Options, etc. | `SecurityHeaders.test.ts` |
+| CORS allowlist | Via `CORS_ORIGINS` (wildcard prohibido) | `Cors.test.ts` |
+| Body size limit | 1MB máximo | `BodySizeLimit.test.ts` |
+| Rate limiting | Por (admin, asset) en pipeline | `RateLimiter.test.ts` |
+| Production guardrails | Fake providers bloqueados | `ProductionGuardrails.test.ts` |
+| Request tracking | UUID por request (`X-Request-Id`) | `RequestIdAndErrorHandler.test.ts` |
+| Audit logging | JSON estructurado, persistencia opcional | `AdminAuditLogger.test.ts` |
 
 ### Gobernanza de Admins
 
-- Bootstrap del primer ADMIN via script idempotente: `npm run bootstrap:admin`.
-- Protección contra demover al último ADMIN (`services/api/src/application/use-cases/SetUserRole.ts`).
-- Audit logging de acciones administrativas (`services/api/src/interfaces/http/audit/`).
-- Persistencia opcional de audit logs en Supabase (`AUDIT_LOG_PERSIST=true`).
+- Bootstrap del primer ADMIN: `npm run bootstrap:admin` (idempotente)
+- Protección contra demover al último ADMIN (error 409)
+- Step-up auth para operaciones sensibles (401 `REAUTH_REQUIRED`)
+
+### Auditoría de Seguridad
+
+El sistema pasó una auditoría completa: **PASS**
+
+Ver: [`docs/audit/00_EXEC_SUMMARY.md`](docs/audit/00_EXEC_SUMMARY.md)
 
 ---
 
@@ -162,63 +177,31 @@ El sistema utiliza IA para:
 
 ### Estrategia
 
-- **TDD** como metodología de desarrollo.
-- Tests unitarios para dominio y casos de uso.
-- Tests de integración **opt-in** (requieren secrets).
+- **TDD** como metodología de desarrollo
+- Tests unitarios para dominio y casos de uso
+- Tests de integración **opt-in** (requieren secrets)
+- Tests de regresión de seguridad en CI
 
 ### Comandos
 
 ```bash
-# Backend
 cd services/api
-npm test              # Unit tests
-npm run test:coverage # Con cobertura
-
-# Frontend
-cd apps/web
-npm test              # Unit tests
-npm run build         # Type-check + build
+npm test                    # Tests unitarios (180+)
+npm run test:coverage       # Con cobertura
+npm run test:watch          # Modo desarrollo
 ```
+
+### Cobertura
+
+| Tipo | Cantidad | CI |
+|------|----------|-----|
+| Unitarios | 180+ | ✅ Siempre |
+| Integración | 10+ | ⏭️ Opt-in (requiere secrets) |
+| Seguridad | 20+ | ✅ Siempre |
 
 ### CI-lite Policy
 
-El CI ejecuta **solo tests unitarios** sin secrets externos:
-
-- Tests de integración usan `describe.skip` cuando faltan env vars.
-- Esto permite CI verde sin exponer credenciales.
-- Tests de integración completos se ejecutan **localmente** con `.env` configurado.
-
-Ver: `.github/workflows/ci.yml` y `docs/07_TESTING_Y_CALIDAD.md`.
-
-### Tests de Seguridad
-
-- Verificación JWKS mock (`services/api/src/__tests__/`)
-- RBAC (USER vs ADMIN)
-- Step-up auth
-- Guardrails de producción
-- Headers de seguridad (Helmet)
-- Body size limit
-- CORS
-
----
-
-## CI/CD
-
-### GitHub Actions (`.github/workflows/ci.yml`)
-
-| Step | Descripción |
-|------|-------------|
-| `npm ci` | Instalación de dependencias |
-| `npm audit --omit=dev --audit-level=high` | Auditoría de seguridad |
-| `npm run test:coverage` | Tests backend + cobertura |
-| `npm run build` (backend) | Compilación TypeScript |
-| `npm test` (frontend) | Tests frontend |
-| `npm run build` (frontend) | Build Next.js |
-| Upload artifact | `coverage/lcov.info` |
-
-### Dependabot
-
-Configurado para actualizaciones automáticas de npm y GitHub Actions (`.github/dependabot.yml`).
+El CI ejecuta **solo tests unitarios** sin secrets externos. Los tests de integración usan `describe.skip` cuando faltan variables de entorno, permitiendo CI verde sin exponer credenciales.
 
 ---
 
@@ -226,25 +209,28 @@ Configurado para actualizaciones automáticas de npm y GitHub Actions (`.github/
 
 ### Backend
 
-- Node.js + TypeScript
-- Express 5 + Clean Architecture
-- Supabase (PostgreSQL + Auth)
-- Yahoo Finance (market data)
-- OpenAI (IA)
-- Vitest (testing)
-- Zod (validación)
+| Tecnología | Uso |
+|------------|-----|
+| Node.js + TypeScript | Runtime y lenguaje |
+| Express 5 | Framework HTTP |
+| Supabase | PostgreSQL + Auth |
+| Yahoo Finance | Datos de mercado |
+| OpenAI | Generación de insights |
+| Vitest | Testing |
+| Zod | Validación de schemas |
 
 ### Frontend
 
-- Next.js 14+ (App Router)
-- TailwindCSS + shadcn/ui
-- Recharts (visualización)
-- Light / Dark mode
-- React Testing Library + Vitest
+| Tecnología | Uso |
+|------------|-----|
+| Next.js 14+ | Framework (App Router) |
+| TailwindCSS + shadcn/ui | Estilos y componentes |
+| Recharts | Visualización de datos |
+| React Testing Library | Testing |
 
 ### Infraestructura
 
-- Monorepo (npm workspaces)
+- Monorepo con npm workspaces
 - Separación backend / frontend
 - Preparado para despliegue en producción
 
@@ -255,22 +241,34 @@ Configurado para actualizaciones automáticas de npm y GitHub Actions (`.github/
 ### Requisitos
 
 - Node.js 20+
+- npm 10+
 - Cuenta en Supabase
-- Variables de entorno configuradas (ver `.env.example`)
+- API Key de OpenAI
 
-### Backend
+### Instalación
 
 ```bash
-cd services/api
+# Clonar repositorio
+git clone https://github.com/[usuario]/inversorai.git
+cd inversorai
+
+# Instalar dependencias
 npm install
-node dist/interfaces/http/server.js  # Después de npm run build
+
+# Configurar variables de entorno
+cp .env.example .env
+# Editar .env con tus credenciales
 ```
 
-### Frontend
+### Ejecutar
 
 ```bash
+# Backend (puerto 3001)
+cd services/api
+npm run dev
+
+# Frontend (puerto 3000)
 cd apps/web
-npm install
 npm run dev
 ```
 
@@ -280,75 +278,123 @@ Acceder a: http://localhost:3000
 
 ## Variables de Entorno
 
-Ver `.env.example` para la lista completa. Variables clave:
+### Backend (secretos)
 
 ```env
-# Supabase
 SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=...  # Solo backend
-
-# Frontend (públicas)
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-
-# Seguridad
-CORS_ORIGINS=https://app.inversorai.com
+SUPABASE_SERVICE_ROLE_KEY=...          # SECRETO
+OPENAI_API_KEY=...                      # SECRETO
+MARKET_DATA_PROVIDER=REAL               # Obligatorio en producción
 NODE_ENV=production
-MARKET_DATA_PROVIDER=REAL  # Requerido en producción
+CORS_ORIGINS=https://app.inversorai.com
 
-# Opcional
-RATE_LIMIT_STORE=supabase  # Para rate limiting distribuido
-AUDIT_LOG_PERSIST=true     # Para persistir audit logs
+# Opcionales
+RATE_LIMIT_STORE=supabase               # memory | supabase
+AUDIT_LOG_PERSIST=true                  # Persistir audit logs
+ADMIN_STEP_UP_MAX_AGE_SECONDS=300       # Ventana de reauth
+```
+
+### Frontend (públicas)
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+NEXT_PUBLIC_API_URL=https://api.inversorai.com
 ```
 
 ---
 
-## Documentación Adicional
+## Estructura del Proyecto
+
+```
+inversorai/
+├── apps/
+│   └── web/                        # Frontend Next.js
+├── services/
+│   └── api/                        # Backend Node.js
+│       ├── src/
+│       │   ├── domain/             # Entidades y reglas
+│       │   ├── application/        # Casos de uso
+│       │   ├── infrastructure/     # Providers, repos
+│       │   └── interfaces/         # HTTP, middlewares
+│       └── __tests__/              # Tests
+├── docs/                           # Documentación
+│   ├── 03_ADR/                     # Decisiones arquitectónicas
+│   ├── audit/                      # Auditoría de seguridad
+│   └── slides/                     # Presentación
+└── package.json
+```
+
+---
+
+## Documentación
+
+### Documentos Principales
 
 | Documento | Descripción |
 |-----------|-------------|
-| `docs/00_INDICE.md` | Índice de documentación |
-| `docs/07_TESTING_Y_CALIDAD.md` | Estrategia de testing |
-| `docs/08_CICD_Y_DEPLOY.md` | CI/CD y despliegue |
-| `docs/09_CHECKLIST_FINAL_TFM.md` | Checklist de entrega |
-| `docs/SUPABASE_CONFIG.md` | Configuración de Supabase |
-| `docs/AUDIT_LOGGING.md` | Audit logging y GDPR |
+| [00_INDICE.md](docs/00_INDICE.md) | Índice y ruta de lectura |
+| [01_SISTEMA_Y_REQUISITOS.md](docs/01_SISTEMA_Y_REQUISITOS.md) | Requisitos funcionales y no funcionales |
+| [02_VISION_Y_ALCANCE.md](docs/02_VISION_Y_ALCANCE.md) | Visión, objetivos y alcance del MVP |
+| [06_PIPELINE.md](docs/06_PIPELINE.md) | Pipeline de datos end-to-end |
+| [07_TESTING.md](docs/07_TESTING.md) | Estrategia TDD y calidad |
+
+### ADRs (Architecture Decision Records)
+
+| ADR | Decisión |
+|-----|----------|
+| [ADR-0001](docs/03_ADR/ADR-0001-stack-y-plataformas.md) | Stack tecnológico y plataformas |
+| [ADR-0002](docs/03_ADR/ADR-0002-proveedor-datos-mercado.md) | Proveedor de datos de mercado |
+| [ADR-0004](docs/03_ADR/ADR-0004-ia-prompting-trazabilidad.md) | IA, prompting y trazabilidad |
+| [ADR-0005](docs/03_ADR/ADR-0005-seguridad-iam-autorizacion.md) | Seguridad, IAM y autorización |
+
+### Configuración y Operación
+
+| Documento | Descripción |
+|-----------|-------------|
+| [SUPABASE_CONFIG.md](docs/SUPABASE_CONFIG.md) | Configuración de Supabase |
+| [AUDIT_LOGGING.md](docs/AUDIT_LOGGING.md) | Audit logging y GDPR |
+| [12_DEPLOYMENT_CHECKLIST.md](docs/12_DEPLOYMENT_CHECKLIST.md) | Checklist de despliegue |
 
 ---
 
-## Flujo de Demo Recomendado (Defensa)
+## Despliegue
 
-1. Registro de usuario (USER).
-2. Login y acceso al dashboard (`/dashboard`).
-3. Visualización de datos reales (verificables en Google Finance).
-4. Cambio de activos (Crypto / Stock / FX).
-5. Visualización de indicadores y gráficos.
-6. Login como ADMIN → Acceso a `/dashboard/admin`.
-7. Ejecución del pipeline de análisis.
-8. Generación de insight IA y recomendación.
-9. Demo de cambio de rol (requiere re-autenticación).
-10. Demo de reset de password.
+| Componente | Plataforma |
+|------------|------------|
+| Frontend | Vercel / Netlify |
+| Backend | Render / Railway |
+| Database | Supabase (Managed) |
+
+Ver runbook completo: [`docs/12_DESPLIEGUE_PRODUCCION_PASO_A_PASO.md`](docs/12_DESPLIEGUE_PRODUCCION_PASO_A_PASO.md)
 
 ---
 
-## Fuente de Datos y Disclaimer
+## Disclaimer
 
-- Fuente de datos de mercado: **Yahoo Finance**.
-- Los análisis e insights generados **no constituyen asesoramiento financiero**.
-- El sistema tiene fines educativos y demostrativos.
+- Fuente de datos: **Yahoo Finance**
+- Los análisis e insights **no constituyen asesoramiento financiero**
+- El sistema tiene **fines educativos y demostrativos**
+- **No se ejecutan operaciones reales** de trading
 
 ---
 
 ## Estado del Proyecto
 
-- MVP completo y funcional.
-- Desplegado en producción.
-- Preparado para evaluación académica.
-- Base sólida para evolución futura.
+- ✅ MVP completo y funcional
+- ✅ Desplegado en producción
+- ✅ Auditoría de seguridad: PASS
+- ✅ 180+ tests unitarios
+- ✅ Documentación completa
+- ✅ Preparado para evaluación académica
 
 ---
 
 ## Autor
 
-Trabajo realizado como **Trabajo Final de Máster (TFM)**
-Máster en Desarrollo con Inteligencia Artificial.
+Trabajo Final de Máster (TFM)  
+**Máster en Desarrollo con Inteligencia Artificial**
+
+---
+
+> **"InversorAI no busca predecir el mercado, busca demostrar cómo se construyen sistemas serios cuando hay IA involucrada."**

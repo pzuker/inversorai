@@ -1,34 +1,105 @@
-# Documentación — Índice y ruta de lectura
+# InversorAI — Documentación Técnica
 
-Este repositorio contiene documentación orientada a **tribunal técnico**: decisiones justificadas, alcance explícito y operación reproducible.
+> **Plataforma de Análisis Financiero con IA Explicable**  
+> Trabajo Final de Máster — Desarrollo de Sistemas con Inteligencia Artificial
 
-## Ruta de lectura recomendada (10–15 minutos)
+---
 
-1) **README.md** — qué es el sistema, qué hace el MVP y cómo correrlo.  
-2) `docs/01_SISTEMA_Y_REQUISITOS.md` — requisitos y alcance real del MVP.  
-3) `docs/02_VISION_Y_ALCANCE_DEL_SISTEMA.md` — visión y delimitación.  
-4) `docs/04_DOMINIO_Y_CASOS_DE_USO.md` — dominio + casos de uso (screaming architecture).  
-5) `docs/06_PIPELINE_DE_DATOS_DE_MERCADO.md` — pipeline end-to-end con datos reales.  
-6) `docs/07_TESTING_Y_CALIDAD.md` — enfoque TDD y estrategia de tests.  
-7) `docs/08_CICD_Y_DEPLOY.md` — despliegue, secretos y bootstrap del primer admin.  
-8) `docs/10_GUION_DEFENSA_ORAL.md` — guión de defensa (10–12 min).  
-9) `docs/09_CHECKLIST_FINAL_TFM.md` — checklist final.
+## Acerca de Este Proyecto
 
-## ADRs (decisiones arquitectónicas)
+InversorAI demuestra cómo construir sistemas profesionales que integran IA de forma **controlada, trazable y auditable**. El foco no es predecir el mercado, sino aplicar ingeniería de software rigurosa a un dominio donde la IA suele tratarse como caja negra.
 
-- `docs/03_ADR/ADR-0001-stack-y-plataformas.md`
-- `docs/03_ADR/ADR-0002-proveedor-datos-mercado.md`
-- `docs/03_ADR/ADR-0003-persistencia-timeseries.md`
-- `docs/03_ADR/ADR-0004-ia-prompting-trazabilidad.md`
-- `docs/03_ADR/ADR-0005-seguridad-iam-autorizacion.md`
-- `docs/03_ADR/ADR-0006_DUAL_OUTPUT_ANALISIS_Y_RECOMENDACION_IA.md`
+Este repositorio incluye documentación orientada a **evaluación técnica**: decisiones justificadas, alcance explícito, arquitectura defendible y operación reproducible.
 
-## Operación ADMIN (MVP)
+---
 
-- `docs/11_OPERACION_ADMIN_Y_GOBERNANZA.md`
+## Ruta de Lectura Recomendada
 
-## Seguridad y Configuración
+### Para una Revisión Rápida (10-15 minutos)
 
-- `docs/SUPABASE_CONFIG.md` — Configuración requerida de Supabase
-- `docs/AUDIT_LOGGING.md` — Audit logging, retención y consideraciones GDPR
+| Orden | Documento | Propósito |
+|-------|-----------|-----------|
+| 1 | **README.md** | Qué es, qué hace, cómo ejecutarlo |
+| 2 | [01_SISTEMA_Y_REQUISITOS.md](01_SISTEMA_Y_REQUISITOS.md) | Requisitos funcionales y no funcionales |
+| 3 | [02_VISION_Y_ALCANCE.md](02_VISION_Y_ALCANCE.md) | Visión, objetivos y delimitación del MVP |
+| 4 | [04_DOMINIO_Y_CASOS_DE_USO.md](04_DOMINIO_Y_CASOS_DE_USO.md) | Modelo de dominio y arquitectura |
+| 5 | [06_PIPELINE.md](06_PIPELINE.md) | Pipeline de datos end-to-end |
+| 6 | [07_TESTING.md](07_TESTING.md) | Estrategia TDD y calidad |
 
+### Para una Revisión Completa
+
+| Documento | Descripción |
+|-----------|-------------|
+| [08_CICD_Y_DEPLOY.md](08_CICD_Y_DEPLOY.md) | CI/CD, despliegue y bootstrap |
+| [09_CHECKLIST_FINAL.md](09_CHECKLIST_FINAL.md) | Checklist de entrega del TFM |
+| [10_OPERACION_ADMIN.md](10_OPERACION_ADMIN.md) | Gobernanza y operación ADMIN |
+| [11_DEPLOYMENT_CHECKLIST.md](11_DEPLOYMENT_CHECKLIST.md) | Runbook de despliegue |
+
+---
+
+## Decisiones Arquitectónicas (ADRs)
+
+Las decisiones de diseño están documentadas formalmente:
+
+| ADR | Decisión |
+|-----|----------|
+| [ADR-0001](03_ADR/ADR-0001-stack-y-plataformas.md) | Stack tecnológico y plataformas |
+| [ADR-0002](03_ADR/ADR-0002-proveedor-datos-mercado.md) | Proveedor de datos de mercado |
+| [ADR-0003](03_ADR/ADR-0003-persistencia-timeseries.md) | Persistencia de series temporales |
+| [ADR-0004](03_ADR/ADR-0004-ia-prompting-trazabilidad.md) | IA, prompting y trazabilidad |
+| [ADR-0005](03_ADR/ADR-0005-seguridad-iam-autorizacion.md) | Seguridad, IAM y autorización |
+| [ADR-0006](03_ADR/ADR-0006-dual-output-ia.md) | Dual output: análisis + recomendación |
+
+---
+
+## Auditoría de Seguridad
+
+El sistema incluye una auditoría de seguridad completa:
+
+| Documento | Contenido |
+|-----------|-----------|
+| [audit/00_EXEC_SUMMARY.md](audit/00_EXEC_SUMMARY.md) | Resumen ejecutivo (PASS) |
+| [audit/01_FINDINGS.md](audit/01_FINDINGS.md) | Hallazgos y resoluciones |
+| [audit/02_OWASP_TOP10.md](audit/02_OWASP_TOP10_MAPPING.md) | Mapeo OWASP Top 10 |
+| [audit/03_TEST_QUALITY.md](audit/03_TEST_QUALITY_REVIEW.md) | Revisión de calidad de tests |
+
+---
+
+## Configuración y Operación
+
+| Documento | Propósito |
+|-----------|-----------|
+| [SUPABASE_CONFIG.md](SUPABASE_CONFIG.md) | Configuración requerida de Supabase |
+| [AUDIT_LOGGING.md](AUDIT_LOGGING.md) | Sistema de auditoría y GDPR |
+| [db/](db/) | Scripts SQL de base de datos |
+
+---
+
+## Navegación por Tema
+
+### Entender el Proyecto
+→ README.md → 02_VISION_Y_ALCANCE.md → 01_SISTEMA_Y_REQUISITOS.md
+
+### Entender la Arquitectura
+→ 04_DOMINIO_Y_CASOS_DE_USO.md → ADR-0001 → ADR-0004
+
+### Entender la Seguridad
+→ ADR-0005 → audit/00_EXEC_SUMMARY.md → 07_TESTING.md (sección 5)
+
+### Desplegar el Sistema
+→ 08_CICD_Y_DEPLOY.md → 12_DEPLOYMENT_CHECKLIST.md → SUPABASE_CONFIG.md
+
+---
+
+## Convenciones de Documentación
+
+- **Fechas**: ISO 8601 (YYYY-MM-DD)
+- **Versiones**: Semánticas (MAJOR.MINOR.PATCH)
+- **Código**: Inline con backticks, bloques con triple backtick
+- **Énfasis**: Negrita para conceptos clave, cursiva para términos técnicos
+- **Tablas**: Para información estructurada y comparativa
+- **Diagramas**: Mermaid cuando aportan claridad
+
+---
+
+*Última actualización: 2026-01-27*
