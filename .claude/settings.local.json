@@ -35,7 +35,8 @@
       "Bash(npm run dev:*)",
       "Bash(dir:*)",
       "Bash(npm run slides:build:*)",
-      "Bash(tasklist:*)"
+      "Bash(tasklist:*)",
+      "Bash(git add:*)"
     ]
   }
 }
